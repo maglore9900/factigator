@@ -2,7 +2,7 @@
 const axios = require('axios');
 
 class FactCheckExplorer {
-  constructor(language = null, num_results = 100) {
+  constructor(language = null, num_results = 20) {
     this.language = language;
     this.num_results = num_results;
     this.filepath = "results/";
@@ -39,12 +39,13 @@ class FactCheckExplorer {
 //   }
 async fetchData(query) {
     const baseUrl = 'https://toolbox.google.com/factcheck/api/search';
-    const params = new URLSearchParams({
-      num_results: 5,
-      force: 'false',
-      offset: 0,
-      query: query
-    });
+    const params = new URLSearchParams(this.params);
+    params.append('query', query);
+    //   num_results: 50,
+    //   force: 'false',
+    //   offset: 0,
+    //   query: query
+    // });
   
     // Construct the encoded URL
     const encodedUrl = encodeURIComponent(`${baseUrl}?${params.toString()}`);

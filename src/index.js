@@ -75,19 +75,21 @@ function injectSidebar() {
 
 
 
-// Handle messages for fact-checking
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "factCheck") {
     console.log("Fact check request received:", request.query);
 
     performFactCheck(request.query)
       .then(result => {
+        console.log("Fact-check result:", result);  // Log the result object
+
         injectSidebar(); // Inject the sidebar as an iframe
 
         // Send data to the iframe via postMessage
         const sidebarFrame = document.getElementById('sidebar-frame');
         if (sidebarFrame) {
           sidebarFrame.onload = () => {
+            console.log("Sending data to sidebar:", result); // Log the data being sent
             sidebarFrame.contentWindow.postMessage({
               action: 'displaySummary',
               data: result

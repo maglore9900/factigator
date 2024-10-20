@@ -40,12 +40,24 @@ function injectSidebar() {
     window.addEventListener('message', (event) => {
       if (event.data.action === 'displaySummary') {
         const { data } = event.data;
+        console.log("Received data in sidebar:", data);  // Log the received data
   
         // Replace '\n' with actual line breaks for better formatting
         const formattedResult = data.result.replace(/\\n/g, '\n');
   
-        // Generate the Markdown content with properly formatted result and sources
-        const markdownContent = `# Summary\n\n${formattedResult}\n\n## Sources\n\n${data.sources.map(src => `- [${src.name}](${src.url})`).join('\n')}`;
+        // Check if sources exist and format them correctly
+        const sourcesList = data.sources && data.sources.length > 0
+          ? data.sources.map(src => {
+              const sourceName = src['Source Name'] || 'Unknown Source';
+              const sourceUrl = src['Source URL'] || '#';
+              const claim = src['Claim'] || 'No claim provided';
+              return `- **Claim**: ${claim}\n  **Source**: [${sourceName}](${sourceUrl})`;
+            }).join('\n')
+          : 'No sources available.';
+  
+        // Generate the Markdown content with the formatted result and sources
+        const markdownContent = `# Summary\n\n${formattedResult}\n\n## Sources\n\n${sourcesList}`;
+        console.log("Markdown content:", markdownContent);  // Log the generated Markdown content
   
         // Display the content
         const contentContainer = document.getElementById('sidebar-content');
@@ -57,6 +69,8 @@ function injectSidebar() {
       }
     });
   })();
+  
+  
   
   
   

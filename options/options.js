@@ -10,7 +10,7 @@ function saveOptions(e) {
   const ollamaModel = document.getElementById("ollama-model").value;
 
   const status = document.getElementById("status");
-  
+
   // Save options to local storage
   browser.storage.local.set({
     openaiApiKey,
@@ -23,6 +23,9 @@ function saveOptions(e) {
     setTimeout(() => {
       status.textContent = "";
     }, 2000);
+    
+    // Clear the API key field after saving
+    document.getElementById("openai-api-key").value = '';
   });
 }
 
@@ -34,7 +37,10 @@ function restoreOptions() {
     ollamaEndpoint: "http://localhost:11434",
     ollamaModel: "llama3.2:3b"
   }, (result) => {
-    document.getElementById("openai-api-key").value = result.openaiApiKey;
+    // Set placeholder for API key without revealing it
+    if (result.openaiApiKey) {
+      document.getElementById("openai-api-key").placeholder = "••••••••";
+    }
     document.getElementById("llm-type").value = result.llmType;
     document.getElementById("openai-model").value = result.openaiModel;
     document.getElementById("ollama-endpoint").value = result.ollamaEndpoint;
@@ -57,6 +63,7 @@ function toggleOllamaFields(llmType) {
   }
 }
 
+// Add event listeners
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.getElementById("settings-form").addEventListener("submit", saveOptions);
 document.getElementById("llm-type").addEventListener("change", (e) => {

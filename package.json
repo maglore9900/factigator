@@ -63,6 +63,7 @@
     "graceful-fs": "^4.2.11",
     "has-flag": "^3.0.0",
     "hasown": "^2.0.2",
+    "html-to-text": "^9.0.5",
     "import-local": "^3.2.0",
     "interpret": "^2.2.0",
     "is-core-module": "^2.15.1",
@@ -136,6 +137,7 @@
     "webpack-sources": "^3.2.3",
     "which": "^2.0.2",
     "wildcard": "^2.0.1",
+    "xmldom": "^0.6.0",
     "yallist": "^3.1.1"
   },
   "author": "",
