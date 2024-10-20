@@ -1,0 +1,38 @@
+{
+    "manifest_version": 3,
+    "name": "Fact Check Extension",
+    "version": "1.0",
+    "description": "Fact-check highlighted text with a right-click.",
+    "permissions": [
+      "contextMenus",
+      "activeTab",
+      "scripting",
+      "storage"
+    ],
+    "background": {
+      "service_worker": "background.js"
+    },
+    "content_scripts": [
+    {
+        "matches": ["<all_urls>"],
+        "js": ["dist/content.bundle.js"],
+        "run_at": "document_idle"
+    }
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": [
+          "sidebar/sidebar.js",
+          "sidebar/sidebar.html",
+          "sidebar/sidebar.css",
+          "sidebar/marked.min.js"
+        ],
+        "matches": ["<all_urls>"]
+      }
+    ],
+    "options_page": "options/options.html",
+      "host_permissions": [
+        "http://localhost:11434/*"
+      ]
+    }
+    
