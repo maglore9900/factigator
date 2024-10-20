@@ -40,7 +40,14 @@ function injectSidebar() {
     window.addEventListener('message', (event) => {
       if (event.data.action === 'displaySummary') {
         const { data } = event.data;
-        const markdownContent = `# Summary\n\n${data.result}\n\n## Sources\n\n${data.sources.join('\n')}`;
+  
+        // Replace '\n' with actual line breaks for better formatting
+        const formattedResult = data.result.replace(/\\n/g, '\n');
+  
+        // Generate the Markdown content with properly formatted result and sources
+        const markdownContent = `# Summary\n\n${formattedResult}\n\n## Sources\n\n${data.sources.map(src => `- [${src.name}](${src.url})`).join('\n')}`;
+  
+        // Display the content
         const contentContainer = document.getElementById('sidebar-content');
         if (contentContainer && typeof marked !== 'undefined') {
           contentContainer.innerHTML = marked.parse(markdownContent);
@@ -50,6 +57,8 @@ function injectSidebar() {
       }
     });
   })();
+  
+  
   
   window.injectSidebar = injectSidebar;
   window.displaySummary = displaySummary;
