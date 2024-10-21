@@ -13,6 +13,8 @@
     "webpack-cli": "^4.0.0"
   },
   "dependencies": {
+    "@langchain/community": "^0.3.7",
+    "@langchain/core": "^0.3.13",
     "@langchain/ollama": "^0.1.0",
     "acorn": "^8.13.0",
     "acorn-import-attributes": "^1.9.5",
@@ -27,6 +29,7 @@
     "buffer-from": "^1.1.2",
     "caniuse-lite": "^1.0.30001669",
     "chalk": "^2.4.2",
+    "cheerio": "^1.0.0",
     "chrome-trace-event": "^1.0.4",
     "clone-deep": "^4.0.1",
     "color-convert": "^1.9.3",
@@ -38,6 +41,7 @@
     "core-js-compat": "^3.38.1",
     "cross-spawn": "^7.0.3",
     "debug": "^4.3.7",
+    "duck-duck-scrape": "^2.2.5",
     "electron-to-chromium": "^1.5.41",
     "emojis-list": "^3.0.0",
     "enhanced-resolve": "^5.17.1",

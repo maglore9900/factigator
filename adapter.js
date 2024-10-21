@@ -1,7 +1,7 @@
-import { OpenAI, ChatOpenAI, OpenAIEmbeddings } from '@langchain/openai';
+import { ChatOpenAI } from '@langchain/openai';
 import { ChatOllama } from "@langchain/ollama";
-import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/hf";
 import { ChatPromptTemplate } from '@langchain/core/prompts';
+
 
 // Updated Adapter class
 class Adapter {

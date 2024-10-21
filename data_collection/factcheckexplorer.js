@@ -1,5 +1,4 @@
-// FactCheckExplorer.js: Converted from Python to JavaScript
-const axios = require('axios');
+
 
 class FactCheckExplorer {
   constructor(language = null, num_results = 20) {
@@ -161,7 +160,7 @@ extractInfo(data) {
       const sourceUrl = sourceDetails ? sourceDetails[1] : null;
       const verdict = sourceDetails ? sourceDetails[3] : null;
       let reviewPublicationDate = (sourceDetails && sourceDetails.length > 11) ? sourceDetails[11] : null;
-      const imageUrl = (claim.length > 1) ? claim[1] : null;
+      // const imageUrl = (claim.length > 1) ? claim[1] : null;
       const claimTags = (claim[0] && claim[0].length > 8 && claim[0][8]) ? claim[0][8] : [];
       const tags = claimTags.map(tag => tagMapping[tag[0]]).filter(tag => tag !== undefined);
 
@@ -171,11 +170,11 @@ extractInfo(data) {
 
       return {
         "Claim": claimText,
+        "Verdict": verdict,
         "Source Name": sourceName,
         "Source URL": sourceUrl,
-        "Verdict": verdict,
         "Review Publication Date": reviewPublicationDate,
-        "Image URL": imageUrl,
+        // "Image URL": imageUrl,
         "Tags": tags
       };
     } catch (error) {
