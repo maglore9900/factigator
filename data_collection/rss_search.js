@@ -70,36 +70,65 @@ class RSSreader {
     }
   }
 
-  // Method to iterate through URLs, search each feed, and store results
-  async searchMultipleFeeds(urls, searchTerm) {
-    for (const url of urls) {
-      console.log(`\nSearching RSS feed at: ${url}`);
-      const searchResults = await this.searchRSSFeed(url, searchTerm);
+  // // Method to iterate through URLs, search each feed, and store results
+  // async searchMultipleFeeds(urls, searchTerm) {
+  //   for (const url of urls) {
+  //     console.log(`\nSearching RSS feed at: ${url}`);
+  //     const searchResults = await this.searchRSSFeed(url, searchTerm);
 
+  //     if (searchResults.length > 0) {
+  //       for (const result of searchResults) {
+  //         const { title, link } = result;
+
+  //         // Fetch and store the content of the link
+  //         // const content = await this.getUrlContent(link);
+
+  //         // Append the result to the JSON structure
+  //         if (!this.results[url]) {
+  //           this.results[url] = [];
+  //         }
+
+  //         this.results[url].push({
+  //           title,
+  //           link,
+  //           // content
+  //         });
+  //       }
+  //     } else {
+  //       console.log(`No results found for "${searchTerm}" in ${url}`);
+  //     }
+  //   }
+  // }
+
+  async searchMultipleFeeds(urls, searchTerm) {
+    for (const { url, identifier } of urls) {
+      console.log(`\nSearching RSS feed at: ${url} (${identifier})`);
+      const searchResults = await this.searchRSSFeed(url, searchTerm);
+  
       if (searchResults.length > 0) {
         for (const result of searchResults) {
           const { title, link } = result;
-
+  
           // Fetch and store the content of the link
-          const content = await this.getUrlContent(link);
-
+          // const content = await this.getUrlContent(link);
+  
           // Append the result to the JSON structure
-          if (!this.results[url]) {
-            this.results[url] = [];
+          if (!this.results[identifier]) {
+            this.results[identifier] = [];
           }
-
-          this.results[url].push({
+  
+          this.results[identifier].push({
             title,
             link,
-            content
+            // content
           });
         }
       } else {
-        console.log(`No results found for "${searchTerm}" in ${url}`);
+        console.log(`No results found for "${searchTerm}" in ${identifier}`);
       }
     }
   }
-
+  
   // Get the results as JSON
   getResultsAsJson() {
     return JSON.stringify(this.results, null, 2); // Pretty-print JSON
@@ -110,14 +139,15 @@ class RSSreader {
 (async () => {
   const rssReader = new RSSreader();
 
-  // List of RSS feed URLs
+  // List of RSS feed URLs with corresponding identifiers
   const rssUrls = [
-    'https://www.factcheck.org/feed/',
-    'https://www.politifact.com/rss/factchecks/'
+    { url: 'https://www.factcheck.org/feed/', identifier: 'factcheck.org' },
+    { url: 'https://www.politifact.com/rss/factchecks/', identifier: 'politifact' }
     // Add more URLs as needed
   ];
 
-  const searchTerm = 'openai'; // Replace with your search term
+
+  const searchTerm = 'kamala'; // Replace with your search term
   
   // Search through multiple feeds and store results
   await rssReader.searchMultipleFeeds(rssUrls, searchTerm);
