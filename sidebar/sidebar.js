@@ -49,7 +49,7 @@ function updateSidebarContent(data) {
 
   // Update summary if available
   if (summaryElement) {
-    const formattedSummary = data.summary ? data.summary.replace(/\\n/g, '\n') : '[Pending...]';
+    const formattedSummary = data.summary ? data.summary.replace(/^"|"$/g, '').replace(/\\n/g, '\n') : '[Pending...]';
     if (typeof marked !== 'undefined') {
       summaryElement.innerHTML = `<strong>Summary:</strong><br>${marked.parse(formattedSummary)}`;
     } else {
