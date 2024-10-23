@@ -179,9 +179,53 @@ function updateSidebar(result) {
     console.error('Sidebar iframe not found.');
   }
 }
+    
+async function retryWithKeywordsAsync(fns, keywords) {
+  // Ensure results is defined at the start
+  const results = new Array(fns.length).fill(null);
+  const reducedKeywordsList = [keywords];
+
+  async function generateReducedKeywords(currentKeywords) {
+    const reducePrompt = `The following keywords: '{keyWords}' are too broad. The most important keywords are typically nouns. Remove the least relevant keyword. Return the reduced keywords only.`;
+    const newReducedKeywordsResponse = await adapter.chat(reducePrompt.replace('{keyWords}', currentKeywords.join(' ')));
+    const newReducedKeywords = cleanKeywords(newReducedKeywordsResponse);
+
+    if (!reducedKeywordsList.some(set => JSON.stringify(set) === JSON.stringify(newReducedKeywords))) {
+      reducedKeywordsList.push(newReducedKeywords);
+    }
+
+    return newReducedKeywords;
+  }
+
+  let keywordsIndex = 0;
+
+  while (keywordsIndex < reducedKeywordsList.length) {
+    const currentKeywords = reducedKeywordsList[keywordsIndex];
+
+    const asyncCalls = fns.map(async (fn, index) => {
+      if (results[index] !== null) return;
+
+      const result = await fn(currentKeywords);
+
+      if (result) {
+        results[index] = result;
+      }
+    });
+
+    await Promise.all(asyncCalls);
+
+    if (results.includes(null) && currentKeywords.length > 1) {
+      const newKeywords = await generateReducedKeywords(currentKeywords);
+      if (newKeywords) reducedKeywordsList.push(newKeywords);
+    }
+
+    keywordsIndex++;
+  }
+
+  return results;
+}
 
 
-  
   async function performFactCheck(claim) {
     const adapter = new Adapter();
     const factCheckExplorer = new FactCheckExplorer();
@@ -195,27 +239,44 @@ function updateSidebar(result) {
   <Explanation>
   
   <Sources> (OPTIONAL: sources to verify the information ONLY USE VALID SOURCES/URLS/WEBSITES, if you dont know, dont include it)`;
-    const reducePrompt = `The following keywords: '{keyWords}' are too broad. The most important keywords are typically nouns. Remove the least relevant keyword. Return the reduced keywords only.`;
+    
   
+      // function cleanKeywords(keyWords) {
+      //     if (typeof keyWords !== 'string') {
+      //       throw new Error('Keywords must be a string');
+      //     }
+      //     // Replace all non-alphanumeric characters, excluding spaces
+      //     return keyWords.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+      //   }
       function cleanKeywords(keyWords) {
-          if (typeof keyWords !== 'string') {
-            throw new Error('Keywords must be a string');
-          }
-          // Replace all non-alphanumeric characters, excluding spaces
-          return keyWords.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+        if (typeof keyWords !== 'string') {
+          throw new Error('Keywords must be a string');
         }
+      
+        // Clean the string by removing non-alphanumeric characters (excluding spaces and commas)
+        const cleanedString = keyWords.replace(/[^a-zA-Z0-9\s,]/g, '').trim();
+      
+        // Check if the string contains a comma
+        if (cleanedString.includes(',')) {
+          // Split by commas and trim each resulting part
+          return cleanedString.split(',').map(word => word.trim()).filter(word => word);
+        } else {
+          // Split by spaces and trim each resulting part
+          return cleanedString.split(/\s+/).filter(word => word);
+        }
+      }
     
       try {
         let keyWordsResponse = await adapter.chat(extractPrompt);
         let keyWords = cleanKeywords(keyWordsResponse);
         globalFactKeywords = keyWords;
         console.log(`Extracted key words: ${keyWords}`);
-  
+        let results = new Array(1).fill(null);
         //Google Fact Check API
-        while (true) {
+        while (keyWords.length > 1 && results.includes(null)) {
           // Fetch the report using the current keywords
-          const report = await factCheckExplorer.process(keyWords);
-        
+          // const report = await factCheckExplorer.process(keyWords);
+          const report = await retryWithKeywordsAsync([factCheckExplorer.process.bind(factCheckExplorer)], keyWords);
           // If results are found, validate and return them
           if (report.length > 0) {
             const validatePromptWithReport = validatePrompt.replace('{report}', JSON.stringify(report));
@@ -225,30 +286,29 @@ function updateSidebar(result) {
             return { result: validateResponse};
           }
         
-          // If no results and only one keyword left, exit
-          if (keyWords.length === 1) {
-            console.log("Only one keyword left with no results. Exiting.");
-            break;  // This ensures the loop exits when there's only one keyword left and no results
-          }
+          // // If no results and only one keyword left, exit
+          // if (keyWords.length === 1) {
+          //   console.log("Only one keyword left with no results. Exiting.");
+          //   break;  // This ensures the loop exits when there's only one keyword left and no results
+          // }
         
-          // Reduce the keywords if there are no results and more than one keyword
-          console.log(`Initial search returned 0 results, retrying with reduced keywords: ${keyWords}`);
-          const reducedKeyWordsResponse = await adapter.chat(reducePrompt.replace('{keyWords}', keyWords));
-          const newKeyWords = cleanKeywords(reducedKeyWordsResponse);
-          globalFactKeywords = newKeyWords;
+          // // Reduce the keywords if there are no results and more than one keyword
+          // console.log(`Initial search returned 0 results, retrying with reduced keywords: ${keyWords}`);
+          // const reducedKeyWordsResponse = await adapter.chat(reducePrompt.replace('{keyWords}', keyWords));
+          // const newKeyWords = cleanKeywords(reducedKeyWordsResponse);
+          // globalFactKeywords = newKeyWords;
         
-          // If reducing keywords results in no change, break to prevent infinite loop
-          if (newKeyWords === keyWords || !newKeyWords) {
-            console.log("No further reduction possible or no keywords left. Exiting.");
-            break;
-          }
+          // // If reducing keywords results in no change, break to prevent infinite loop
+          // if (newKeyWords === keyWords || !newKeyWords) {
+          //   console.log("No further reduction possible or no keywords left. Exiting.");
+          //   break;
+          // }
         
           // Update keywords for the next iteration
-          keyWords = newKeyWords;
+          // keyWords = newKeyWords;
         }
-        
-                
+    
     } catch (error) {
-        throw new Error(`Error during fact-checking: ${error.message}`);
-      }
+      throw new Error(`Error during fact-checking: ${error.message}`);
     }
+  }
