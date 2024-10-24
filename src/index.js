@@ -2,7 +2,6 @@ let browser = (typeof chrome !== 'undefined') ? chrome : (typeof browser !== 'un
 import Adapter from '../adapter.js';
 import FactCheckExplorer from '../data_collection/factcheckexplorer.js';
 import RSSreader from '../data_collection/rss_search.js';
-import { LANGCHAIN_TRACING_V2, LANGCHAIN_API_KEY, LANGCHAIN_PROJECT } from '../langtrace.js';
 let globalClaim = '';
 let globalFactKeywords = '';
 let globalFactDataPoints = '';
