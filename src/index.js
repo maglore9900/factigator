@@ -99,7 +99,7 @@ function injectSidebar(claim) {
 function updateSidebar(result) {
   const sidebarFrame = document.getElementById('sidebar-frame');
   if (sidebarFrame) {
-    console.log("Updating sidebar with final data:", result);
+    // console.log("Updating sidebar with final data:", result);
     sidebarFrame.contentWindow.postMessage({
       action: 'displaySummary',
       data: {
@@ -121,10 +121,8 @@ async function retryWithKeywordsAsync(fns) {
 
   // Helper function to generate reduced sets of keywords
   async function generateReducedKeywords(currentKeywords) {
-    console.log(`Current keywords: ${currentKeywords.join(', ')}`);
-    const reducePrompt = `The following keywords: '{keyWords}' are too broad. The most important keywords are typically nouns. Remove the least relevant keyword. Return the keywords only.`;
+    const reducePrompt = `The following keywords: '{keyWords}' are too broad. Remove the least relevant keyword. Return the keywords only.`;
     const newReducedKeywordsResponse = await adapter.chat(reducePrompt.replace('{keyWords}', currentKeywords.join(' ')));
-    console.log(`Reduced keywords: ${newReducedKeywordsResponse}`);
     return cleanKeywords(newReducedKeywordsResponse);
   }
 
@@ -139,7 +137,6 @@ async function retryWithKeywordsAsync(fns) {
         console.log(`current keyword length: ${global_keywords[global_keywords.length - 1]} and length: ${global_keywords[global_keywords.length - 1].length} on i: ${iterationCount}, keyword lists count ${global_keywords.length}`);
         if (iterationCount < global_keywords.length) {
           const currentKeywords = global_keywords[global_keywords.length - 1];
-          console.log(`Trying keywords for function ${iterationCount}: ${currentKeywords}`);
           // Attempt the function with the current set of keywords
           const result = await fn(currentKeywords);
 
@@ -152,11 +149,8 @@ async function retryWithKeywordsAsync(fns) {
         // If iterations match global list length and the last list has more than one keyword, reduce keywords
           
         else if (global_keywords[global_keywords.length - 1].length > 1) {
-          console.log(`Reducing keywords ${global_keywords[global_keywords.length - 1]} for function ${iterationCount}.`);
           const reducedKeywords = await generateReducedKeywords(global_keywords[global_keywords.length - 1]);
-          console.log(`Reduced keywords: ${reducedKeywords}`);
           global_keywords.push(reducedKeywords);
-          console.log(`New global keywords length: ${global_keywords.length}`);
         } 
         // If only one keyword remains, exit loop without finding a result
         else {
@@ -180,8 +174,6 @@ function cleanKeywords(keyWords) {
 
   // Clean the string by removing non-alphanumeric characters (excluding spaces)
   const cleanedString = keyWords.replace(/[^a-zA-Z0-9\s]/g, '').trim();
-  console.log(`Cleaned keywords: ${cleanedString}`);
-
   // Split by spaces and trim each resulting part
   return cleanedString.split(/\s+/).filter(word => word);
 }
@@ -206,7 +198,6 @@ function cleanKeywords(keyWords) {
       let keyWordsResponse = await adapter.chat(extractPrompt);
       let keyWords = cleanKeywords(keyWordsResponse);
       global_keywords = [[...keyWords]]; // Initialize global_keywords with the initial list
-      console.log(`Extracted key words: ${keyWords}`);
   
       // Initialize results to match the number of functions
       let results = new Array(2).fill(null);
@@ -227,8 +218,6 @@ function cleanKeywords(keyWords) {
           const validReports = report.filter(r => r && Object.keys(r).length > 0);
           const validatePromptWithReport = validatePrompt.replace('{report}', JSON.stringify(validReports));
           const validateResponse = await adapter.chat(validatePromptWithReport);
-  
-          console.log(`Validation Result: ${JSON.stringify(validateResponse)}`);
           globalFactDataPoints = validReports.length;
           return { result: validateResponse };
         }
