@@ -2,10 +2,13 @@ let browser = (typeof chrome !== 'undefined') ? chrome : (typeof browser !== 'un
 import Adapter from '../adapter.js';
 import FactCheckExplorer from '../data_collection/factcheckexplorer.js';
 import RSSreader from '../data_collection/rss_search.js';
+import { LANGCHAIN_TRACING_V2, LANGCHAIN_API_KEY, LANGCHAIN_PROJECT } from '../langtrace.js';
 let globalClaim = '';
 let globalFactKeywords = '';
 let globalFactDataPoints = '';
 let globalResult = 'Gathering Data..';
+let global_keywords = [];
+const adapter = new Adapter();
 // console.log("Content script loaded.");
 
 
@@ -118,8 +121,10 @@ async function retryWithKeywordsAsync(fns) {
 
   // Helper function to generate reduced sets of keywords
   async function generateReducedKeywords(currentKeywords) {
-    const reducePrompt = `The following keywords: '{keyWords}' are too broad. The most important keywords are typically nouns. Remove the least relevant keyword. Return the reduced keywords only.`;
+    console.log(`Current keywords: ${currentKeywords.join(', ')}`);
+    const reducePrompt = `The following keywords: '{keyWords}' are too broad. The most important keywords are typically nouns. Remove the least relevant keyword. Return the keywords only.`;
     const newReducedKeywordsResponse = await adapter.chat(reducePrompt.replace('{keyWords}', currentKeywords.join(' ')));
+    console.log(`Reduced keywords: ${newReducedKeywordsResponse}`);
     return cleanKeywords(newReducedKeywordsResponse);
   }
 
@@ -131,22 +136,27 @@ async function retryWithKeywordsAsync(fns) {
       // Loop until result is found or keywords are exhausted
       while (true) {
         // Check if the number of iterations is less than the number of lists in global_keywords
+        console.log(`current keyword length: ${global_keywords[global_keywords.length - 1]} and length: ${global_keywords[global_keywords.length - 1].length} on i: ${iterationCount}, keyword lists count ${global_keywords.length}`);
         if (iterationCount < global_keywords.length) {
-          const currentKeywords = global_keywords[iterationCount];
-
+          const currentKeywords = global_keywords[global_keywords.length - 1];
+          console.log(`Trying keywords for function ${iterationCount}: ${currentKeywords}`);
           // Attempt the function with the current set of keywords
           const result = await fn(currentKeywords);
 
           // If a result is found, store it and break out of the loop
-          if (result) {
+          if (result && result.length > 0) {
             results[index] = result;
             break;
           }
         } 
         // If iterations match global list length and the last list has more than one keyword, reduce keywords
+          
         else if (global_keywords[global_keywords.length - 1].length > 1) {
+          console.log(`Reducing keywords ${global_keywords[global_keywords.length - 1]} for function ${iterationCount}.`);
           const reducedKeywords = await generateReducedKeywords(global_keywords[global_keywords.length - 1]);
+          console.log(`Reduced keywords: ${reducedKeywords}`);
           global_keywords.push(reducedKeywords);
+          console.log(`New global keywords length: ${global_keywords.length}`);
         } 
         // If only one keyword remains, exit loop without finding a result
         else {
@@ -163,10 +173,20 @@ async function retryWithKeywordsAsync(fns) {
   return results;
 }
 
+function cleanKeywords(keyWords) {
+  if (typeof keyWords !== 'string') {
+    throw new Error('Keywords must be a string');
+  }
 
-  let global_keywords = [];
+  // Clean the string by removing non-alphanumeric characters (excluding spaces)
+  const cleanedString = keyWords.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+  console.log(`Cleaned keywords: ${cleanedString}`);
+
+  // Split by spaces and trim each resulting part
+  return cleanedString.split(/\s+/).filter(word => word);
+}
+  
   async function performFactCheck(claim) {
-    const adapter = new Adapter();
     const factCheckExplorer = new FactCheckExplorer();
     const rssReader = new RSSreader();
   
@@ -180,18 +200,6 @@ async function retryWithKeywordsAsync(fns) {
   <Explanation>
   
   <Sources> (OPTIONAL: sources to verify the information ONLY USE VALID SOURCES/URLS/WEBSITES, if you dont know, dont include it)`;
-  
-    function cleanKeywords(keyWords) {
-      if (typeof keyWords !== 'string') {
-        throw new Error('Keywords must be a string');
-      }
-  
-      // Clean the string by removing non-alphanumeric characters (excluding spaces)
-      const cleanedString = keyWords.replace(/[^a-zA-Z0-9\s]/g, '').trim();
-  
-      // Split by spaces and trim each resulting part
-      return cleanedString.split(/\s+/).filter(word => word);
-    }
   
     try {
       // Extract initial keywords from the claim
@@ -209,6 +217,9 @@ async function retryWithKeywordsAsync(fns) {
         const report = await retryWithKeywordsAsync(
           [factCheckExplorer.process.bind(factCheckExplorer), rssReader.searchMultipleFeeds.bind(rssReader)]
         );
+        // const report = await retryWithKeywordsAsync(
+        //   [factCheckExplorer.process.bind(factCheckExplorer)]
+        // );
   
         // Check if results are found
         if (report.some(r => r && Object.keys(r).length > 0)) {

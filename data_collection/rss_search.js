@@ -11,7 +11,7 @@ class RSSreader {
     ];
     this.getContent = 0; // Counter for fetched content
   }
-  async fetchData(url) {
+  async fetchRSSData(url) {
     const baseUrl = encodeURIComponent(url); // Ensure URL is encoded
     try {
       // Fetch the RSS feed through the proxy
@@ -45,7 +45,7 @@ class RSSreader {
       let rssText = null;
 
       if (this.getContent < this.rssUrls.length) {
-        rssText = await this.fetchData(url);
+        rssText = await this.fetchRSSDatata(url);
         this.getContent += 1
       }
       // const rssText = await this.fetchData(url);

@@ -26,7 +26,7 @@ class FactCheckExplorer {
     return query.replace(/\W+/g, '_');
   }
 
-async fetchData(query) {
+async fetchFactCheckData(query) {
     const baseUrl = 'https://toolbox.google.com/factcheck/api/search';
     const params = new URLSearchParams(this.params);
     params.append('query', query);
@@ -36,8 +36,12 @@ async fetchData(query) {
   
     try {
       // Call the All Origins API
-      const response = await fetch(`https://api.allorigins.win/get?url=${encodedUrl}`);
-      const data = await response.json();
+      // const response = await fetch(`https://api.allorigins.win/get?url=${encodedUrl}`);
+      const response = await this.fetchFromBackground(`https://api.allorigins.win/get?url=${encodedUrl}`);
+      console.log('Received Data')
+      // const data = await response.json();
+      const data = response
+      console.log('Raw API response:', data);
   
       // Remove the prefix ")]}'" from the response contents
       const cleanedContent = data.contents.replace(/^\)\]\}\'\n/, '');
@@ -52,6 +56,36 @@ async fetchData(query) {
       return null;
     }
   }
+
+  fetchFromBackground(url) {
+    console.log(`Fetching from background: ${url}`);
+    return new Promise((resolve, reject) => {
+      // Send message to the background script with the URL
+      chrome.runtime.sendMessage(
+        { action: "fetchFactCheckData", url: url },
+        response => {
+          if (chrome.runtime.lastError) {
+            console.error(`Runtime error: ${chrome.runtime.lastError.message}`);
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
+  
+          if (response && response.success) {
+            // Return the raw JSON data
+            console.log('Response data:', response.data);
+            resolve(response.data);
+
+          } else {
+            const errorMessage = response ? response.error : 'No response from background script';
+            console.error(`Fetch failed: ${errorMessage}`);
+            reject(new Error(errorMessage));
+          }
+        }
+      );
+    });
+  }
+  
+  
   
 static cleanJson(rawJson) {
     try {
@@ -91,7 +125,7 @@ extractInfo(data) {
           parsedClaims.push(claimDetails);
         }
       }
-  
+      
       return parsedClaims;
     } catch (error) {
       console.error('Error extracting info:', error);
@@ -134,7 +168,7 @@ extractInfo(data) {
 
   async process(query) {
     try {
-      const rawJson = await this.fetchData(query);
+      const rawJson = await this.fetchFactCheckData(query);
       if (!rawJson) {
         throw new Error('No data returned from fetchData');
       }
@@ -148,6 +182,74 @@ extractInfo(data) {
       return [];
     }
   }
+
+ 
+  
+  // fetchFromBackground(query) {
+  //   return new Promise((resolve, reject) => {
+  //     // Base URL for the fact-checking API
+  //     const baseUrl = 'https://toolbox.google.com/factcheck/api/search';
+  //     const params = new URLSearchParams(this.params);
+  //     params.append('query', query);
+  
+  //     // Construct the encoded URL with parameters
+  //     const targetUrl = `${baseUrl}?${params.toString()}`;
+  //     const encodedUrl = encodeURIComponent(targetUrl);
+  
+  //     // Send message to background script
+  //     chrome.runtime.sendMessage(
+  //       { action: "fetchFactCheckData", url: `https://api.allorigins.win/get?url=${encodedUrl}` },
+  //       response => {
+  //         if (chrome.runtime.lastError) {
+  //           console.error(`Runtime error: ${chrome.runtime.lastError.message}`);
+  //           reject(new Error(chrome.runtime.lastError.message));
+  //           return;
+  //         }
+  
+  //         if (response && response.success) {
+  //           try {
+  //             // Check if response.data exists and parse it
+  //             let parsedResponse;
+  //             if (typeof response.data === 'string') {
+  //               parsedResponse = JSON.parse(response.data);
+  //             } else {
+  //               parsedResponse = response.data;
+  //             }
+  
+  //             // Check if 'contents' exists and clean it
+  //             if (parsedResponse.contents) {
+  //               const cleanedContent = parsedResponse.contents.replace(/^\)\]\}'\n\n/, '');
+  //               parsedResponse = JSON.parse(cleanedContent);
+  //             }
+  
+  //             // Check if the parsed data is an array
+  //             if (Array.isArray(parsedResponse) && parsedResponse.length > 0) {
+  //               console.log('Parsed API response:', parsedResponse);
+  //               resolve(parsedResponse[0]); // Return the first element
+  //             } else {
+  //               console.error('Unexpected response format or empty array');
+  //               reject(new Error('No valid data found in response'));
+  //             }
+  //           } catch (parseError) {
+  //             console.error(`Error parsing data: ${parseError.message}`);
+  //             reject(new Error('Failed to parse response data'));
+  //           }
+  //         } else {
+  //           const errorMessage = response ? response.error : 'No response from background script';
+  //           console.error(`Fetch failed: ${errorMessage}`);
+  //           reject(new Error(errorMessage));
+  //         }
+  //       }
+  //     );
+  //   });
+  // }
+  
+  
+  
+  
+  
+  
+  
   
 }
 
