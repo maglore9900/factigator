@@ -38,8 +38,6 @@
                 <label for="ollama-model">Ollama Model:</label>
                 <input type="text" id="ollama-model" placeholder="llama3.2:3b" />
             </div>
-
-            <button type="submit" class="btn btn-primary">Save Settings</button>
         </form>
 
         <h1>Content Options</h1>
@@ -56,33 +54,27 @@
         <!-- RSS Feeds Section -->
         <div class="form-group">
             <h2>RSS Feeds</h2>
-            <div id="rss-feed-list">
-                <div class="input-group">
-                    <input type="checkbox" checked>
-                    <label>https://www.factcheck.org/feed/</label>
-                </div>
-                <div class="input-group">
-                    <input type="checkbox" checked>
-                    <label>https://www.politifact.com/rss/factchecks/</label>
-                </div>
-            </div>
+            <div id="rss-feed-list" class="feed-list"></div>
             <button class="btn btn-primary" id="add-rss-feed">Add RSS Feed</button>
         </div>
 
         <!-- URLs Section -->
         <div class="form-group">
             <h2>URLs</h2>
-            <div id="url-list">
-                <div class="input-group">
-                    <input type="checkbox" checked>
-                    <label>snopes.com</label>
-                </div>
-            </div>
+            <div id="url-list" class="url-list"></div>
             <button class="btn btn-primary" id="add-url">Add URL</button>
         </div>
 
+        <!-- Status Message -->
         <div id="status" class="status-message"></div>
+
+        <!-- Buttons for Restore and Save -->
+        <div id="button-container" style="display: flex; justify-content: center; margin-top: 20px;">
+            <button id="restore-button" class="btn">Restore Options</button>
+            <button id="save-button" class="btn" style="margin-left: 10px;">Save</button>
+        </div>
     </div>
+
     <script src="options.js"></script>
 </body>
 </html>

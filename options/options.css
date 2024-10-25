@@ -127,3 +127,21 @@ body {
     .delete-btn:hover {
         background-color: #c0392b;
     }
+
+    #button-container {
+        position: fixed;
+        bottom: 20px;
+        width: 100%;
+    }   
+   
+    #restore-button {
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+    }
+    
+    #save-button {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+    }
+    

@@ -3,7 +3,8 @@ import fetch from 'node-fetch';
 import { htmlToText } from 'html-to-text';
 
 class RSSreader {
-  constructor() {
+  constructor(settings) {
+    this.settings = settings;
     this.results = {}; // Store the final JSON results here
     this.rssUrls = [
       { url: 'https://www.factcheck.org/feed/', identifier: 'factcheck.org' },

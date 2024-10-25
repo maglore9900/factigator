@@ -8,13 +8,15 @@ let globalFactKeywords = '';
 let globalFactDataPoints = '';
 let globalResult = 'Gathering Data..';
 let global_keywords = [];
-const adapter = new Adapter();
-let settings = null
+
+let adapter;
+let factCheckExplorer;
+let rssReader;
 // console.log("Content script loaded.");
 
 
 // Load LLM settings from Chrome storage
-async function loadLLMSettings() {
+function loadLLMSettings() {
     return new Promise((resolve) => {
       browser.storage.local.get(
         {
@@ -22,7 +24,10 @@ async function loadLLMSettings() {
           llmType: "openai",
           openaiModel: "gpt-4o-mini",
           ollamaEndpoint: "http://localhost:11434",
-          ollamaModel: "llama3.2:3b"
+          ollamaModel: "llama3.2:3b",
+          googleFactCheckerEnabled: true,
+          rssFeeds: [],  // Include RSS feeds
+          urls: [] 
         },
         (settings) => {
           resolve(settings);
@@ -30,6 +35,20 @@ async function loadLLMSettings() {
       );
     });
   }
+
+async function initializeSettings() {
+  const settings = await loadLLMSettings(); // Wait for settings to load
+  // console.log(`Settings loaded: ${JSON.stringify(settings)}`);
+  // console.log(`factCheckExplorer: ${settings.factCheckExplorer}`);
+  adapter = new Adapter(settings);
+  factCheckExplorer = new FactCheckExplorer(settings); // Ensure settings are passed
+  rssReader = new RSSreader(settings);
+  console.log('Initialization complete.');
+}
+
+initializeSettings().catch(error => {
+  console.error('Failed to initialize settings:', error);
+});
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "factCheck") {
@@ -56,6 +75,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // Keep message channel open for async response
   }
 });
+
 
 // Injects the sidebar with the initial claim
 function injectSidebar(claim) {
@@ -179,10 +199,7 @@ function cleanKeywords(keyWords) {
   return cleanedString.split(/\s+/).filter(word => word);
 }
   
-async function performFactCheck(claim) {
-    const factCheckExplorer = new FactCheckExplorer();
-    const rssReader = new RSSreader();
-  
+async function performFactCheck(claim) {  
     const extractPrompt = `Extract the keywords from the following text: ${claim}. These keywords will be used to search for information in a database. Only return up to 5 key words. Do not include any other text.`;
     const validatePrompt = `Validate the following claim: ${claim} based on the following information: {report}.
   Answer the claim, if the claim is not a question, but keywords, then review the data and determine if the claim subject is true or false.
@@ -196,7 +213,9 @@ async function performFactCheck(claim) {
   
     try {
       // Extract initial keywords from the claim
+      console.log("test 1");
       let keyWordsResponse = await adapter.chat(extractPrompt);
+      console.log("test 2");
       let keyWords = cleanKeywords(keyWordsResponse);
       global_keywords = [[...keyWords]]; // Initialize global_keywords with the initial list
   
