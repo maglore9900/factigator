@@ -21,9 +21,7 @@
       "activeTab",
       "scripting",
       "storage",
-      "webRequest",
-      "webRequestBlocking",
-      "*://*/*"
+      "declarativeNetRequest"
     ],
     "background": {
       "service_worker": "background.js"
@@ -48,6 +46,7 @@
     ],
     "options_page": "options/options.html",
       "host_permissions": [
+        "<all_urls>",
         "http://localhost:11434/*",
         "https://api.allorigins.win/*"
       ]

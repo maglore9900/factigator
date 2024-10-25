@@ -2,12 +2,14 @@ let browser = (typeof chrome !== 'undefined') ? chrome : (typeof browser !== 'un
 import Adapter from '../adapter.js';
 import FactCheckExplorer from '../data_collection/factcheckexplorer.js';
 import RSSreader from '../data_collection/rss_search.js';
+
 let globalClaim = '';
 let globalFactKeywords = '';
 let globalFactDataPoints = '';
 let globalResult = 'Gathering Data..';
 let global_keywords = [];
 const adapter = new Adapter();
+let settings = null
 // console.log("Content script loaded.");
 
 
@@ -177,7 +179,7 @@ function cleanKeywords(keyWords) {
   return cleanedString.split(/\s+/).filter(word => word);
 }
   
-  async function performFactCheck(claim) {
+async function performFactCheck(claim) {
     const factCheckExplorer = new FactCheckExplorer();
     const rssReader = new RSSreader();
   
@@ -220,9 +222,8 @@ function cleanKeywords(keyWords) {
           globalFactDataPoints = validReports.length;
           return { result: validateResponse };
         }
-
       }
     } catch (error) {
       throw new Error(`Error during fact-checking: ${error.message}`);
-    }
   }
+}

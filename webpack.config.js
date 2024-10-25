@@ -4,7 +4,11 @@ module.exports = {
   entry: './src/index.js',
   output: {
     filename: 'content.bundle.js',
-    path: path.resolve(__dirname, 'dist')
+    path: path.resolve(__dirname, 'dist'),
+    libraryTarget: 'module'
+  },
+  experiments: {
+    outputModule: true, // Enable output module experiment
   },
   module: {
     rules: [

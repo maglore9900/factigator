@@ -6,13 +6,10 @@ import fetch from 'node-fetch';
 const tool = new DuckDuckGoSearch({ maxResults: 10 });
 
 class DuckDuckGo {
-  constructor(keywords) {
-    this.keywords = keywords;
-  }
-
+  constructor() {}
   // Method to get the search result
-  async getSearchResult() {
-    const result = await tool.invoke(`snopes.com: ${this.keywords}`);
+  async getSearchResult(keywords) {
+    const result = await tool.invoke(`snopes.com: ${keywords}`);
 
     // Check if the result is a string, and parse it
     let parsedResult;
@@ -39,14 +36,14 @@ class DuckDuckGo {
       });
 
       // Fetch and return the URL content
-      const content = await this.getUrlContent(link);
+      const verdict = await this.getUrlContent(link);
 
       // Return the results as an object
       return {
         title,
         link,
         snippet,
-        content
+        verdict
       };
     } else {
       console.error("Unexpected result format:", JSON.stringify(parsedResult, null, 2));
@@ -118,7 +115,7 @@ class DuckDuckGo {
 // Example usage
 (async () => {
   const duckDuckGo = new DuckDuckGo();
-  const searchResult = await duckDuckGo.getSearchResult();
+  const searchResult = await duckDuckGo.getSearchResult("kamala harris Escort");
 
   if (searchResult) {
     console.log("Search Result:", searchResult);

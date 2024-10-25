@@ -84,8 +84,11 @@ async fetchFactCheckData(query) {
       );
     });
   }
-  
-  
+
+getFactCheckEnabled() {
+  const googleFactCheckerEnabled = document.getElementById("google-fact-checker").checked;
+  return googleFactCheckerEnabled ? "Google Fact Checker" : null;
+}
   
 static cleanJson(rawJson) {
     try {
@@ -181,77 +184,8 @@ extractInfo(data) {
       console.error(`Error during fact-checking: ${error}`);
       return [];
     }
-  }
-
- 
-  
-  // fetchFromBackground(query) {
-  //   return new Promise((resolve, reject) => {
-  //     // Base URL for the fact-checking API
-  //     const baseUrl = 'https://toolbox.google.com/factcheck/api/search';
-  //     const params = new URLSearchParams(this.params);
-  //     params.append('query', query);
-  
-  //     // Construct the encoded URL with parameters
-  //     const targetUrl = `${baseUrl}?${params.toString()}`;
-  //     const encodedUrl = encodeURIComponent(targetUrl);
-  
-  //     // Send message to background script
-  //     chrome.runtime.sendMessage(
-  //       { action: "fetchFactCheckData", url: `https://api.allorigins.win/get?url=${encodedUrl}` },
-  //       response => {
-  //         if (chrome.runtime.lastError) {
-  //           console.error(`Runtime error: ${chrome.runtime.lastError.message}`);
-  //           reject(new Error(chrome.runtime.lastError.message));
-  //           return;
-  //         }
-  
-  //         if (response && response.success) {
-  //           try {
-  //             // Check if response.data exists and parse it
-  //             let parsedResponse;
-  //             if (typeof response.data === 'string') {
-  //               parsedResponse = JSON.parse(response.data);
-  //             } else {
-  //               parsedResponse = response.data;
-  //             }
-  
-  //             // Check if 'contents' exists and clean it
-  //             if (parsedResponse.contents) {
-  //               const cleanedContent = parsedResponse.contents.replace(/^\)\]\}'\n\n/, '');
-  //               parsedResponse = JSON.parse(cleanedContent);
-  //             }
-  
-  //             // Check if the parsed data is an array
-  //             if (Array.isArray(parsedResponse) && parsedResponse.length > 0) {
-  //               console.log('Parsed API response:', parsedResponse);
-  //               resolve(parsedResponse[0]); // Return the first element
-  //             } else {
-  //               console.error('Unexpected response format or empty array');
-  //               reject(new Error('No valid data found in response'));
-  //             }
-  //           } catch (parseError) {
-  //             console.error(`Error parsing data: ${parseError.message}`);
-  //             reject(new Error('Failed to parse response data'));
-  //           }
-  //         } else {
-  //           const errorMessage = response ? response.error : 'No response from background script';
-  //           console.error(`Fetch failed: ${errorMessage}`);
-  //           reject(new Error(errorMessage));
-  //         }
-  //       }
-  //     );
-  //   });
-  // }
-  
-  
-  
-  
-  
-  
-  
-  
+  }  
 }
 
-module.exports = FactCheckExplorer;
+export default FactCheckExplorer;
 
