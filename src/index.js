@@ -217,28 +217,21 @@ async function performFactCheck(claim) {
       let keyWords = cleanKeywords(keyWordsResponse);
       global_keywords = [[...keyWords]]; // Initialize global_keywords with the initial list
   
-      // Initialize results to match the number of functions
-      let results = new Array(2).fill(null);
-  
-      // Loop until all results are found or keywords are exhausted
-      while (keyWords.length > 1 && results.includes(null)) {
-        // Fetch the report using the current keywords
-        const report = await retryWithKeywordsAsync(
-          [factCheckExplorer.process.bind(factCheckExplorer), rssReader.searchMultipleFeeds.bind(rssReader)]
-        );
-        // const report = await retryWithKeywordsAsync(
-        //   [factCheckExplorer.process.bind(factCheckExplorer)]
-        // );
-  
-        // Check if results are found
-        if (report.some(r => r && Object.keys(r).length > 0)) {
-          // Filter and aggregate valid reports
-          const validReports = report.filter(r => r && Object.keys(r).length > 0);
-          const validatePromptWithReport = validatePrompt.replace('{report}', JSON.stringify(validReports));
-          const validateResponse = await adapter.chat(validatePromptWithReport);
-          globalFactDataPoints = validReports.length;
-          return { result: validateResponse };
-        }
+      // Fetch the report using the current keywords
+      const report = await retryWithKeywordsAsync(
+        [factCheckExplorer.process.bind(factCheckExplorer), rssReader.searchMultipleFeeds.bind(rssReader)]
+      );
+
+      // Check if results are found
+      if (report.some(r => r && Object.keys(r).length > 0)) {
+        // Filter and aggregate valid reports
+        const validReports = report.filter(r => r && Object.keys(r).length > 0);
+        const validatePromptWithReport = validatePrompt.replace('{report}', JSON.stringify(validReports));
+        const validateResponse = await adapter.chat(validatePromptWithReport);
+        globalFactDataPoints = validReports.length;
+        return { result: validateResponse };
+      } else {
+        return { result: 'No information found on this topic.' };
       }
     } catch (error) {
       throw new Error(`Error during fact-checking: ${error.message}`);
