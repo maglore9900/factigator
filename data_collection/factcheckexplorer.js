@@ -120,7 +120,6 @@ extractInfo(data) {
       const tagMapping = Object.fromEntries(data[0][2] || []);  // Safely handle tag mapping
   
       if (!Array.isArray(claimsData) || claimsData.length === 0) {
-        console.error('No claims found in data:', data);
         return [];
       }
   
@@ -174,16 +173,12 @@ extractInfo(data) {
 
   async process(query) {
     if (this.settings.googleFactCheckerEnabled === true) {
-      console.log('FactCheckExplorer is enabled');
       try {
         const rawJson = await this.fetchFactCheckData(query);
         if (!rawJson) {
           throw new Error('No data returned from fetchFactCheckData');
         }
         const extractedInfo = this.extractInfo(rawJson);
-        if (extractedInfo.length === 0) {
-          console.error('No results extracted');
-        }
         return extractedInfo;
       } catch (error) {
         console.error(`Error during fact-checking: ${error}`);
