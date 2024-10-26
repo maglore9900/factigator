@@ -6,10 +6,16 @@ import fetch from 'node-fetch';
 const tool = new DuckDuckGoSearch({ maxResults: 10 });
 
 class DuckDuckGo {
-  constructor() {}
+  constructor(settings) {
+    this.urls = settings.urls;
+  }
   // Method to get the search result
-  async getSearchResult(keywords) {
-    const result = await tool.invoke(`snopes.com: ${keywords}`);
+  async cleanURL(url) {
+    //remove http and https
+    return url.replace(/^https?:\/\//, '');
+  }
+  async getSearchResult(keywords, url) {
+    const result = await tool.invoke(`${url}: ${keywords}`);
 
     // Check if the result is a string, and parse it
     let parsedResult;

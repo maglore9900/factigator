@@ -213,9 +213,7 @@ async function performFactCheck(claim) {
   
     try {
       // Extract initial keywords from the claim
-      console.log("test 1");
       let keyWordsResponse = await adapter.chat(extractPrompt);
-      console.log("test 2");
       let keyWords = cleanKeywords(keyWordsResponse);
       global_keywords = [[...keyWords]]; // Initialize global_keywords with the initial list
   

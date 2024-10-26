@@ -9,6 +9,9 @@ class Adapter {
     this.settings = settings;
     this.llmText = settings.llmType.toLowerCase();
     this.openAIApiKey = settings.openaiApiKey;
+    this.openaiModel = settings.openaiModel;
+    this.ollamaEndpoint = settings.ollamaEndpoint;
+    this.ollamaModel = settings.ollamaModel;
   }
 
   async init() {
@@ -24,7 +27,7 @@ class Adapter {
       this.prompt = ChatPromptTemplate.fromTemplate('answer the following request: {topic}');
       this.llmChat = new ChatOpenAI({
         temperature: 0.3,
-        model: this.settings.openaiModel,
+        model: this.openaiModel,
         openAIApiKey: this.openAIApiKey
       });
     } else if (this.llmText === 'ollama') {
@@ -33,8 +36,8 @@ class Adapter {
       }
       this.prompt = ChatPromptTemplate.fromTemplate('answer the following request: {topic}');
       this.llmChat = new ChatOllama({
-        baseUrl: this.settings.ollamaEndpoint,
-        model: this.settings.ollamaModel
+        baseUrl: this.ollamaEndpoint,
+        model: this.ollamaModel
       });
 
     } else {

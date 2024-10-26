@@ -6,12 +6,25 @@ class RSSreader {
   constructor(settings) {
     this.settings = settings;
     this.results = {}; // Store the final JSON results here
-    this.rssUrls = [
-      { url: 'https://www.factcheck.org/feed/', identifier: 'factcheck.org' },
-      { url: 'https://www.politifact.com/rss/factchecks/', identifier: 'politifact' }
-    ];
+    this.rssUrls = [];
     this.getContent = 0; // Counter for fetched content
+
+    this.initFunction(); // Call the initialization function
   }
+
+  initFunction() {
+    this.getDomain(this.settings.rssFeeds); // Call getDomain with provided URLs
+    console.log(this.rssUrls);
+  }
+
+  async getDomain(urls) {
+    for (const url of urls) {
+      const parts = url.split('.');
+      const domain = `${parts[1]}.${parts[2]}`; // Get the second element
+      this.rssUrls.push({ url: url, domain: domain });
+    }
+  }
+
   async fetchRSSData(url) {
     const baseUrl = encodeURIComponent(url); // Ensure URL is encoded
     try {
@@ -46,7 +59,7 @@ class RSSreader {
       let rssText = null;
 
       if (this.getContent < this.rssUrls.length) {
-        rssText = await this.fetchRSSDatata(url);
+        rssText = await this.fetchRSSData(url);
         this.getContent += 1
       }
       // const rssText = await this.fetchData(url);
@@ -123,8 +136,8 @@ class RSSreader {
     let foundResults = false; // To check if any results are found
   
     // Create an array of promises for concurrent feed searches
-    const feedPromises = this.rssUrls.map(async ({ url, identifier }) => {
-      // console.log(`\nSearching RSS feed at: ${url} (${identifier})`);
+    const feedPromises = this.rssUrls.map(async ({ url, domain }) => {
+      console.log(`\nSearching RSS feed at: ${url} (${domain})`);
   
       // Search the RSS feed for the given term
       const searchResults = await this.searchRSSFeed(url, searchTerm);
@@ -134,12 +147,12 @@ class RSSreader {
         // console.log(`Found results in ${url}:`, searchResults);
   
         // Initialize the result array for the identifier if it doesn't exist
-        if (!this.results[identifier]) {
-          this.results[identifier] = [];
+        if (!this.results[domain]) {
+          this.results[domain] = [];
         }
   
         // Append search results to the results array for the identifier
-        this.results[identifier].push(...searchResults);
+        this.results[domain].push(...searchResults);
       } else {
         // console.log(`No results found for "${searchTerm}" in ${identifier}`);
       }
@@ -157,14 +170,26 @@ class RSSreader {
   // Get the results as JSON
   getResultsAsJson() {
     return JSON.stringify(this.results, null, 2); // Pretty-print JSON
+    // return {
+    //   json: JSON.stringify(this.results, null, 2), // Pretty-printed JSON string
+    //   domains: Object.keys(this.results) // List of the domains
+    // };
   }
 }
 
 export default RSSreader;
 
 
+// Example usage
+// (async () => {
+//   const settings = {
+//     rssFeeds: [
+//       'https://www.factcheck.org/feed/',
+//       'https://www.politifact.com/rss/factchecks/'
+//     ]
+//   };
 
-// let rssReader = new RSSreader();
-// let results = await rssReader.searchMultipleFeeds('kamala');
-// console.log(results); // Output the results as JSON
-
+//   let rssReader = new RSSreader(settings);
+//   let results = await rssReader.searchMultipleFeeds('kamala');
+//   console.log(results); // Output the results as JSON
+// })();
