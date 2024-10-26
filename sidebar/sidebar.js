@@ -16,8 +16,10 @@ function createSidebarElements() {
   // Summary element
   const summaryElement = document.createElement('div');
   summaryElement.id = 'summary-text';
-  summaryElement.innerHTML = '<strong>Summary:</strong> [Pending...]';
+  summaryElement.innerHTML = '<strong>Summary:</strong> Pending...';
+  // summaryElement.innerHTML = '<strong>Summary:</strong> <span id="summary-progress">Pending...</span>';
   sidebar.appendChild(summaryElement);
+  
 
   // Status element
   const statusElement = document.createElement('div');
@@ -104,3 +106,25 @@ document.addEventListener('DOMContentLoaded', () => {
   // Create the sidebar elements
   createSidebarElements();
 });
+
+function startProgressIndicator(elementId) {
+  let dotCount = 0;
+  const maxDots = 3; // Maximum number of dots
+
+  // Find the element where the progress indicator should be displayed
+  const element = document.getElementById(elementId);
+  if (!element) {
+    console.error(`Element with ID '${elementId}' not found.`);
+    return;
+  }
+
+  // Start the interval to update the dots
+  const intervalId = setInterval(() => {
+    dotCount = (dotCount + 1) % (maxDots + 1); // Cycle between 0 and maxDots
+    element.innerHTML = `<strong>Summary:</strong> Pending${'.'.repeat(dotCount)}`;
+  }, 500); // Update every 500ms
+
+  // Return the interval ID for future clearing if needed
+  return intervalId;
+}
+
