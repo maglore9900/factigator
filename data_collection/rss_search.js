@@ -5,24 +5,31 @@ import { htmlToText } from 'html-to-text';
 class RSSreader {
   constructor(settings) {
     this.settings = settings;
+    console.log(`RSS settins: ${JSON.stringify(this.settings)}`);
     this.results = {}; // Store the final JSON results here
-    this.rssUrls = [];
+    this.rssUrls = []; // Store the RSS feed URLs
+    this.rawRSSUrls = this.settings.rssFeeds; // Store the raw RSS feed URLs
     this.getContent = 0; // Counter for fetched content
 
     this.initFunction(); // Call the initialization function
   }
 
   initFunction() {
-    this.getDomain(this.settings.rssFeeds); // Call getDomain with provided URLs
-    console.log(this.rssUrls);
+    this.getDomain(this.rawRSSUrls); // Call getDomain with provided URLs
   }
-
+  
   async getDomain(urls) {
-    for (const url of urls) {
-      const parts = url.split('.');
-      const domain = `${parts[1]}.${parts[2]}`; // Get the second element
-      this.rssUrls.push({ url: url, domain: domain });
+    for (const { enabled, url } of urls) {
+      if (enabled) {
+        // Extract the domain from the URL
+        const parts = url.split('.');
+        const domain = `${parts[1]}.${parts[2]}`; // Get the second and third parts
+        
+        // Push the URL and domain to rssUrls
+        this.rssUrls.push({ url: url, domain: domain });
+      }
     }
+    console.log(`Rss URLs: ${JSON.stringify(this.rssUrls)}`);
   }
 
   async fetchRSSData(url) {
@@ -39,6 +46,10 @@ class RSSreader {
   
       // Parse the JSON response from AllOrigins
       const data = await response.json();
+      if (typeof data.contents !== 'string') {
+        console.error("Unexpected response type for contents:", data.contents);
+        return null;
+      }
   
       // Extract the contents from the 'contents' property
       if (data.contents) {
@@ -67,6 +78,10 @@ class RSSreader {
       // Check if rssText is null or empty
       if (!rssText) {
         // console.error(`Failed to fetch RSS feed from ${url}`);
+        return [];
+      }
+      if (typeof rssText !== 'string') {
+        console.error('rssText is not a string:', rssText);
         return [];
       }
       if (rssText.startsWith('data:application/rss+xml; charset=UTF-8;base64,')) {
@@ -180,13 +195,9 @@ class RSSreader {
 export default RSSreader;
 
 
-// Example usage
 // (async () => {
 //   const settings = {
-//     rssFeeds: [
-//       'https://www.factcheck.org/feed/',
-//       'https://www.politifact.com/rss/factchecks/'
-//     ]
+//     rssFeeds: [{"enabled":true,"url":"https://www.factcheck.org/feed/"},{"enabled":true,"url":"https://www.politifact.com/rss/factchecks/"}]
 //   };
 
 //   let rssReader = new RSSreader(settings);
