@@ -1,13 +1,27 @@
 {
     "manifest_version": 3,
-    "name": "Fact Check Extension",
+    "name": "Factigator",
     "version": "1.0",
+    "icons": {
+      "16": "images/gator16.png",
+      "48": "images/gator48.png",
+      "128": "images/gator128.png"
+    },
+    "action": {
+      "default_icon": {
+        "16": "images/gator16.png",
+        "48": "images/gator48.png",
+        "128": "images/gator128.png"
+      }
+    },
+    
     "description": "Fact-check highlighted text with a right-click.",
     "permissions": [
       "contextMenus",
       "activeTab",
       "scripting",
-      "storage"
+      "storage",
+      "declarativeNetRequest"
     ],
     "background": {
       "service_worker": "background.js"
@@ -32,7 +46,9 @@
     ],
     "options_page": "options/options.html",
       "host_permissions": [
-        "http://localhost:11434/*"
+        "<all_urls>",
+        "http://localhost:11434/*",
+        "https://api.allorigins.win/*"
       ]
     }
     

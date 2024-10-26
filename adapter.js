@@ -5,37 +5,39 @@ import { ChatPromptTemplate } from '@langchain/core/prompts';
 
 // Updated Adapter class
 class Adapter {
-  constructor() {
-    this.llm = null;
-    this.prompt = null;
-    this.llmChat = null;
+  constructor(settings) {
+    this.settings = settings;
+    this.llmText = settings.llmType.toLowerCase();
+    this.openAIApiKey = settings.openaiApiKey;
+    this.openaiModel = settings.openaiModel;
+    this.ollamaEndpoint = settings.ollamaEndpoint;
+    this.ollamaModel = settings.ollamaModel;
   }
 
   async init() {
     // Load settings from Chrome's local storage
-    const settings = await this.loadSettings();
+    // const settings = await this.loadSettings();
 
-    if (!settings || !settings.llmType) {
+    if (!this.settings || !this.settings.llmType) {
       throw new Error('LLM_TYPE is not defined in local storage');
     }
-    this.llmText = settings.llmType.toLowerCase();
+    // this.llmText = settings.llmType.toLowerCase();
 
     if (this.llmText === 'openai') {
       this.prompt = ChatPromptTemplate.fromTemplate('answer the following request: {topic}');
       this.llmChat = new ChatOpenAI({
         temperature: 0.3,
-        model: settings.openaiModel,
-        openAIApiKey: settings.openaiApiKey
+        model: this.openaiModel,
+        openAIApiKey: this.openAIApiKey
       });
     } else if (this.llmText === 'ollama') {
       if (!settings.ollamaModel || !settings.ollamaEndpoint) {
         throw new Error('OLLAMA_MODEL and OLLAMA_URL must be defined in local storage');
       }
-      const llmModel = settings.ollamaModel;
       this.prompt = ChatPromptTemplate.fromTemplate('answer the following request: {topic}');
       this.llmChat = new ChatOllama({
-        baseUrl: settings.ollamaEndpoint,
-        model: llmModel
+        baseUrl: this.ollamaEndpoint,
+        model: this.ollamaModel
       });
 
     } else {
@@ -43,31 +45,19 @@ class Adapter {
     }
   }
 
-  async loadSettings() {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(
-        {
-          openaiApiKey: "",
-          llmType: "openai",
-          openaiModel: "gpt-4o-mini",
-          ollamaEndpoint: "http://localhost:11434",
-          ollamaModel: "llama3.2:3b"
-        },
-        (settings) => {
-          resolve(settings);
-        }
-      );
-    });
-  }
-
   async chat(query) {
     if (!this.llmChat) {
       await this.init(); // Ensure initialization
     }
-    console.log(`Adapter query: ${query}`);
-    const result = await this.llmChat.invoke(query);
-    console.log(`Adapter response: ${JSON.stringify(result.content)}`);
-    return JSON.stringify(result.content);
+    try {
+      console.log(`Sending query to LLM: ${query}`);
+      const result = await this.llmChat.invoke(query);
+      console.log(`Received response from LLM: ${JSON.stringify(result.content)}`);
+      return JSON.stringify(result.content);
+    } catch (error) {
+      console.error(`Error in adapter.chat(): ${error.message}`);
+      throw error; // Re-throw to catch it in performFactCheck
+    }
   }
 }
 

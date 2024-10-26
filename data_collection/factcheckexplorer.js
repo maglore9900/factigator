@@ -1,10 +1,13 @@
 
 
 class FactCheckExplorer {
-  constructor(language = null, num_results = 20) {
+  constructor(settings, language = null, num_results = 20) {
+    if (!settings) {
+      throw new Error("Settings object is not defined");
+    }
+    this.settings = settings;
     this.language = language;
     this.num_results = num_results;
-    this.filepath = "results/";
     this.url = 'https://toolbox.google.com/factcheck/api/search';
     this.params = {
       num_results: String(this.num_results),
@@ -26,33 +29,22 @@ class FactCheckExplorer {
     return query.replace(/\W+/g, '_');
   }
 
-//   async fetchData(query) {
-//     try {
-//       const params = { ...this.params, query };
-//       const response = await axios.get(this.url, { params, headers: this.headers });
-//       return response.data;
-//     } catch (error) {
-//       console.error(`Error fetching data: ${error}`);
-//       return null;
-//     }
-//   }
-async fetchData(query) {
+async fetchFactCheckData(query) {
     const baseUrl = 'https://toolbox.google.com/factcheck/api/search';
     const params = new URLSearchParams(this.params);
     params.append('query', query);
-    //   num_results: 50,
-    //   force: 'false',
-    //   offset: 0,
-    //   query: query
-    // });
   
     // Construct the encoded URL
     const encodedUrl = encodeURIComponent(`${baseUrl}?${params.toString()}`);
   
     try {
       // Call the All Origins API
-      const response = await fetch(`https://api.allorigins.win/get?url=${encodedUrl}`);
-      const data = await response.json();
+      // const response = await fetch(`https://api.allorigins.win/get?url=${encodedUrl}`);
+      const response = await this.fetchFromBackground(`https://api.allorigins.win/get?url=${encodedUrl}`);
+      console.log('Received Data')
+      // const data = await response.json();
+      const data = response
+      console.log('Raw API response:', data);
   
       // Remove the prefix ")]}'" from the response contents
       const cleanedContent = data.contents.replace(/^\)\]\}\'\n/, '');
@@ -67,22 +59,40 @@ async fetchData(query) {
       return null;
     }
   }
-  
 
+  fetchFromBackground(url) {
+    console.log(`Fetching from background: ${url}`);
+    return new Promise((resolve, reject) => {
+      // Send message to the background script with the URL
+      chrome.runtime.sendMessage(
+        { action: "fetchFactCheckData", url: url },
+        response => {
+          if (chrome.runtime.lastError) {
+            console.error(`Runtime error: ${chrome.runtime.lastError.message}`);
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
   
+          if (response && response.success) {
+            // Return the raw JSON data
+            console.log('Response data:', response.data);
+            resolve(response.data);
+
+          } else {
+            const errorMessage = response ? response.error : 'No response from background script';
+            console.error(`Fetch failed: ${errorMessage}`);
+            reject(new Error(errorMessage));
+          }
+        }
+      );
+    });
+  }
+
+getFactCheckEnabled() {
+  const googleFactCheckerEnabled = document.getElementById("google-fact-checker").checked;
+  return googleFactCheckerEnabled ? "Google Fact Checker" : null;
+}
   
-  
-  
-  
-  
-//   static cleanJson(rawJson) {
-//     try {
-//       return JSON.parse(rawJson.replace(/^\)\]\}\'\n/, ''));
-//     } catch (error) {
-//       console.error(`JSON decoding failed: ${error}`);
-//       return [];
-//     }
-//   }
 static cleanJson(rawJson) {
     try {
       // Check if rawJson is a string
@@ -97,28 +107,6 @@ static cleanJson(rawJson) {
     }
   }
   
-  
-
-//   extractInfo(data) {
-//     if (!data || !Array.isArray(data) || !data[0]) {
-//       return [];
-//     }
-
-//     const parsedClaims = [];
-//     try {
-//       const tagMapping = Object.fromEntries(data[0][2]);
-
-//       for (const claim of data[0][1]) {
-//         const claimDetails = FactCheckExplorer._parseClaim(claim, tagMapping);
-//         if (claimDetails) {
-//           parsedClaims.push(claimDetails);
-//         }
-//       }
-//       return parsedClaims;
-//     } catch (error) {
-//       return [];
-//     }
-//   }
 extractInfo(data) {
     if (!data || !Array.isArray(data) || !data[0]) {
       console.error('Unexpected data format:', data);
@@ -132,7 +120,6 @@ extractInfo(data) {
       const tagMapping = Object.fromEntries(data[0][2] || []);  // Safely handle tag mapping
   
       if (!Array.isArray(claimsData) || claimsData.length === 0) {
-        console.error('No claims found in data:', data);
         return [];
       }
   
@@ -143,7 +130,7 @@ extractInfo(data) {
           parsedClaims.push(claimDetails);
         }
       }
-  
+      
       return parsedClaims;
     } catch (error) {
       console.error('Error extracting info:', error);
@@ -161,8 +148,8 @@ extractInfo(data) {
       const verdict = sourceDetails ? sourceDetails[3] : null;
       let reviewPublicationDate = (sourceDetails && sourceDetails.length > 11) ? sourceDetails[11] : null;
       // const imageUrl = (claim.length > 1) ? claim[1] : null;
-      const claimTags = (claim[0] && claim[0].length > 8 && claim[0][8]) ? claim[0][8] : [];
-      const tags = claimTags.map(tag => tagMapping[tag[0]]).filter(tag => tag !== undefined);
+      // const claimTags = (claim[0] && claim[0].length > 8 && claim[0][8]) ? claim[0][8] : [];
+      // const tags = claimTags.map(tag => tagMapping[tag[0]]).filter(tag => tag !== undefined);
 
       if (reviewPublicationDate) {
         reviewPublicationDate = new Date(reviewPublicationDate * 1000).toISOString().replace('T', ' ').slice(0, 19);
@@ -175,7 +162,7 @@ extractInfo(data) {
         "Source URL": sourceUrl,
         "Review Publication Date": reviewPublicationDate,
         // "Image URL": imageUrl,
-        "Tags": tags
+        // "Tags": tags
       };
     } catch (error) {
       console.error(`Error parsing claim: ${error}`);
@@ -185,29 +172,23 @@ extractInfo(data) {
 
 
   async process(query) {
-    try {
-      const rawJson = await this.fetchData(query);
-  
-      if (!rawJson) {
-        throw new Error('No data returned from fetchData');
+    if (this.settings.googleFactCheckerEnabled === true) {
+      try {
+        const rawJson = await this.fetchFactCheckData(query);
+        if (!rawJson) {
+          throw new Error('No data returned from fetchFactCheckData');
+        }
+        const extractedInfo = this.extractInfo(rawJson);
+        return extractedInfo;
+      } catch (error) {
+        console.error(`Error during fact-checking: ${error}`);
+        return [];
       }
-  
-      const extractedInfo = this.extractInfo(rawJson);
-  
-      if (extractedInfo.length === 0) {
-        console.error('No results extracted');
-      }
-  
-      return extractedInfo;
-    } catch (error) {
-      console.error(`Error during fact-checking: ${error}`);
+    } else {
       return [];
     }
-  }
-  
+  } 
 }
 
-module.exports = FactCheckExplorer;
-// Example usage:
-// const factCheckExplorer = new FactCheckExplorer('en');
-// factCheckExplorer.process('climate change is false').then(console.log);
+export default FactCheckExplorer;
+

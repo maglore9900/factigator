@@ -81,6 +81,7 @@
     "json-schema-traverse": "^0.4.1",
     "json5": "^2.2.3",
     "kind-of": "^6.0.3",
+    "langsmith": "^0.1.66",
     "loader-runner": "^4.3.0",
     "loader-utils": "^2.0.4",
     "locate-path": "^5.0.0",
