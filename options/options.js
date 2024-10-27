@@ -320,7 +320,6 @@ function saveOptions(e) {
         ollamaModel,
         googleFactCheckerEnabled,
         rssFeeds,  // Save the entire list of RSS feeds
-        urls       // Save the entire list of URLs
     }, () => {
         const status = document.getElementById("status");
         status.textContent = "Options saved successfully!";
@@ -359,7 +358,6 @@ function restoreOptions() {
         ollamaModel: "llama3.2:3b",
         googleFactCheckerEnabled: true,
         rssFeeds: [],
-        urls: []
     }, (result) => {
         // Set LLM type and model fields
         document.getElementById("llm-type").value = result.llmType;
@@ -381,10 +379,6 @@ function restoreOptions() {
             { url: 'https://www.politifact.com/rss/factchecks/', enabled: true }
         ];
 
-        // Use default URLs if none are saved
-        const urls = result.urls.length > 0 ? result.urls : [
-            { url: 'snopes.com', enabled: true }
-        ];
 
         // Display RSS feeds
         const rssFeedList = document.getElementById('rss-feed-list');
@@ -393,12 +387,6 @@ function restoreOptions() {
             addExistingEntry(rssFeedList, feed.url, feed.enabled);
         });
 
-        // Display URLs
-        const urlList = document.getElementById('url-list');
-        urlList.innerHTML = '';  // Clear the list
-        urls.forEach(url => {
-            addExistingEntry(urlList, url.url, url.enabled);
-        });
     });
 }
 
@@ -434,16 +422,11 @@ function initializeOptions() {
         { url: 'https://www.politifact.com/rss/factchecks/', enabled: true }
     ];
 
-    const defaultUrls = [
-        { url: 'snopes.com', enabled: true }
-    ];
 
     // Display defaults initially
     const rssFeedList = document.getElementById('rss-feed-list');
     defaultRssFeeds.forEach(feed => addExistingEntry(rssFeedList, feed.url, feed.enabled));
 
-    const urlList = document.getElementById('url-list');
-    defaultUrls.forEach(url => addExistingEntry(urlList, url.url, url.enabled));
 
     // Retrieve saved settings from local storage
     browser.storage.local.get(['rssFeeds', 'urls'], (result) => {
@@ -455,10 +438,5 @@ function initializeOptions() {
             result.rssFeeds.forEach(feed => addExistingEntry(rssFeedList, feed.url, feed.enabled));
         }
 
-        // If saved URLs exist, override defaults
-        if (result.urls && result.urls.length > 0) {
-            urlList.innerHTML = '';  // Clear the list
-            result.urls.forEach(url => addExistingEntry(urlList, url.url, url.enabled));
-        }
     });
 }

@@ -5,7 +5,6 @@ import { htmlToText } from 'html-to-text';
 class RSSreader {
   constructor(settings) {
     this.settings = settings;
-    console.log(`RSS settins: ${JSON.stringify(this.settings)}`);
     this.results = {}; // Store the final JSON results here
     this.rssUrls = []; // Store the RSS feed URLs
     this.rawRSSUrls = this.settings.rssFeeds; // Store the raw RSS feed URLs
