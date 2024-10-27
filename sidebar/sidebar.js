@@ -1,3 +1,5 @@
+let intervalId
+
 // Function to create the sidebar structure
 function createSidebarElements() {
   const sidebar = document.getElementById('sidebar-content');
@@ -19,6 +21,7 @@ function createSidebarElements() {
   summaryElement.innerHTML = '<strong>Summary:</strong> Pending...';
   // summaryElement.innerHTML = '<strong>Summary:</strong> <span id="summary-progress">Pending...</span>';
   sidebar.appendChild(summaryElement);
+  startProgressIndicator('summary-text')
   
 
   // Status element
@@ -37,6 +40,7 @@ function createSidebarElements() {
 // Function to update the sidebar elements dynamically
 function updateSidebarContent(data) {
   // Select sidebar elements
+  
   const claimElement = document.getElementById('claim-text');
   const summaryElement = document.getElementById('summary-text');
   const statusElement = document.getElementById('status-text');
@@ -50,15 +54,14 @@ function updateSidebarContent(data) {
   }
 
   // Update summary if available
-  if (summaryElement) {
-    const formattedSummary = data.summary ? data.summary.replace(/^"|"$/g, '').replace(/\\n/g, '\n') : '[Pending...]';
+  if (data.summary) {
+    onSummaryReady()
+    const formattedSummary = data.summary.replace(/^"|"$/g, '').replace(/\\n/g, '\n');
     if (typeof marked !== 'undefined') {
       summaryElement.innerHTML = `<strong>Summary:</strong><br>${marked.parse(formattedSummary)}`;
     } else {
       summaryElement.innerHTML = `<strong>Summary:</strong><br>${formattedSummary}`;
     }
-  } else {
-    console.error('Summary element not found.');
   }
 
   // Update status
@@ -117,14 +120,19 @@ function startProgressIndicator(elementId) {
     console.error(`Element with ID '${elementId}' not found.`);
     return;
   }
-
+  
   // Start the interval to update the dots
-  const intervalId = setInterval(() => {
+  intervalId = setInterval(() => {
     dotCount = (dotCount + 1) % (maxDots + 1); // Cycle between 0 and maxDots
     element.innerHTML = `<strong>Summary:</strong> Pending${'.'.repeat(dotCount)}`;
   }, 500); // Update every 500ms
 
   // Return the interval ID for future clearing if needed
   return intervalId;
+}
+
+function onSummaryReady() {
+  // Clear the interval to stop the dot animation
+  clearInterval(intervalId);
 }
 

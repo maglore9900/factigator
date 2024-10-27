@@ -108,7 +108,7 @@ function injectSidebar(claim) {
       action: 'displaySummary',
       data: {
         claim: claim,
-        summary: '[Pending...]',
+        summary: '',
         status: 'Loading...',
         sources: []
       }
