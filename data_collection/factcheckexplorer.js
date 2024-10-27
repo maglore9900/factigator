@@ -41,17 +41,17 @@ async fetchFactCheckData(query) {
       // Call the All Origins API
       // const response = await fetch(`https://api.allorigins.win/get?url=${encodedUrl}`);
       const response = await this.fetchFromBackground(`https://api.allorigins.win/get?url=${encodedUrl}`);
-      console.log('Received Data')
+      // console.log('Received Data')
       // const data = await response.json();
       const data = response
-      console.log('Raw API response:', data);
+      // console.log('Raw API response:', data);
   
       // Remove the prefix ")]}'" from the response contents
       const cleanedContent = data.contents.replace(/^\)\]\}\'\n/, '');
   
       // Parse the cleaned JSON content
       const parsedData = JSON.parse(cleanedContent);
-      console.log('Parsed API response:', parsedData);
+      // console.log('Parsed API response:', parsedData);
 
       return parsedData;
     } catch (error) {
@@ -61,7 +61,7 @@ async fetchFactCheckData(query) {
   }
 
   fetchFromBackground(url) {
-    console.log(`Fetching from background: ${url}`);
+    // console.log(`Fetching from background: ${url}`);
     return new Promise((resolve, reject) => {
       // Send message to the background script with the URL
       chrome.runtime.sendMessage(
@@ -75,7 +75,7 @@ async fetchFactCheckData(query) {
   
           if (response && response.success) {
             // Return the raw JSON data
-            console.log('Response data:', response.data);
+            // console.log('Response data:', response.data);
             resolve(response.data);
 
           } else {

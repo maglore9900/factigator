@@ -87,7 +87,7 @@ function updateSidebarContent(data) {
 // Listen for messages from index.js
 window.addEventListener('message', (event) => {
   if (event.data.action === 'displaySummary') {
-    console.log("Received data in sidebar:", event.data.data);  // Log the received data
+    // console.log("Received data in sidebar:", event.data.data);  // Log the received data
     updateSidebarContent(event.data.data);
   }
 });

@@ -50,9 +50,9 @@ class Adapter {
       await this.init(); // Ensure initialization
     }
     try {
-      console.log(`Sending query to LLM: ${query}`);
+      // console.log(`Sending query to LLM: ${query}`);
       const result = await this.llmChat.invoke(query);
-      console.log(`Received response from LLM: ${JSON.stringify(result.content)}`);
+      // console.log(`Received response from LLM: ${JSON.stringify(result.content)}`);
       return JSON.stringify(result.content);
     } catch (error) {
       console.error(`Error in adapter.chat(): ${error.message}`);

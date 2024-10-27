@@ -43,7 +43,7 @@ async function initializeSettings() {
   adapter = new Adapter(settings);
   factCheckExplorer = new FactCheckExplorer(settings); // Ensure settings are passed
   rssReader = new RSSreader(settings);
-  console.log('Initialization complete.');
+  // console.log('Initialization complete.');
 }
 
 initializeSettings().catch(error => {
@@ -155,7 +155,7 @@ async function retryWithKeywordsAsync(fns) {
       // Loop until result is found or keywords are exhausted
       while (true) {
         // Check if the number of iterations is less than the number of lists in global_keywords
-        console.log(`current keyword length: ${global_keywords[global_keywords.length - 1]} and length: ${global_keywords[global_keywords.length - 1].length} on i: ${iterationCount}, keyword lists count ${global_keywords.length}`);
+        // console.log(`current keyword length: ${global_keywords[global_keywords.length - 1]} and length: ${global_keywords[global_keywords.length - 1].length} on i: ${iterationCount}, keyword lists count ${global_keywords.length}`);
         if (iterationCount < global_keywords.length) {
           const currentKeywords = global_keywords[global_keywords.length - 1];
           // Attempt the function with the current set of keywords
@@ -175,7 +175,7 @@ async function retryWithKeywordsAsync(fns) {
         } 
         // If only one keyword remains, exit loop without finding a result
         else {
-          console.log(`No results found for function ${index} with reduced keywords.`);
+          // console.log(`No results found for function ${index} with reduced keywords.`);
           break;
         }
 

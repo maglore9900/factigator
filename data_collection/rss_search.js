@@ -28,7 +28,7 @@ class RSSreader {
         this.rssUrls.push({ url: url, domain: domain });
       }
     }
-    console.log(`Rss URLs: ${JSON.stringify(this.rssUrls)}`);
+    // console.log(`Rss URLs: ${JSON.stringify(this.rssUrls)}`);
   }
 
   async fetchRSSData(url) {
@@ -151,7 +151,7 @@ class RSSreader {
   
     // Create an array of promises for concurrent feed searches
     const feedPromises = this.rssUrls.map(async ({ url, domain }) => {
-      console.log(`\nSearching RSS feed at: ${url} (${domain})`);
+      // console.log(`\nSearching RSS feed at: ${url} (${domain})`);
   
       // Search the RSS feed for the given term
       const searchResults = await this.searchRSSFeed(url, searchTerm);
