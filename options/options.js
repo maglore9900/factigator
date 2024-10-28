@@ -219,7 +219,6 @@ function setupEventHandlers() {
     });
 
     document.getElementById("add-rss-feed").addEventListener("click", () => addEntry('rss-feed-list', 'RSS Feed'));
-    document.getElementById("add-url").addEventListener("click", () => addEntry('url-list', 'URL'));
 
     // Add event to unmask OpenAI API key for editing
     const openaiApiKeyInput = document.getElementById("openai-api-key");
@@ -283,7 +282,7 @@ function saveOptions(e) {
     if (e) e.preventDefault(); // Prevent form submission default behavior
 
     const llmType = document.getElementById("llm-type").value;
-    let openaiApiKey = document.getElementById("openai-api-key").value;
+    let openaiApiKey = document.getElementById("openai-api-key").value || '';
     const openaiModel = document.getElementById("openai-model").value;
     const ollamaEndpoint = document.getElementById("ollama-endpoint").value;
     const ollamaModel = document.getElementById("ollama-model").value;
@@ -298,13 +297,6 @@ function saveOptions(e) {
         rssFeeds.push({ url: input.value, enabled: checkbox.checked });
     });
 
-    // Gather all URLs, both enabled and disabled
-    const urls = [];
-    document.querySelectorAll('#url-list .input-group').forEach(div => {
-        const input = div.querySelector('input[type="text"]');
-        const checkbox = div.querySelector('input[type="checkbox"]');
-        urls.push({ url: input.value, enabled: checkbox.checked });
-    });
 
     // Only save the API key if it is not masked (to prevent saving masked value)
     if (openaiApiKey === "********") {

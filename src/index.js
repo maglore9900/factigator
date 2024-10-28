@@ -38,7 +38,7 @@ function loadLLMSettings() {
 
 async function initializeSettings() {
   const settings = await loadLLMSettings(); // Wait for settings to load
-  // console.log(`Settings loaded: ${JSON.stringify(settings)}`);
+  console.log(`Settings loaded: ${JSON.stringify(settings)}`);
   // console.log(`factCheckExplorer: ${settings.factCheckExplorer}`);
   adapter = new Adapter(settings);
   factCheckExplorer = new FactCheckExplorer(settings); // Ensure settings are passed
@@ -213,10 +213,11 @@ async function performFactCheck(claim) {
   
     try {
       // Extract initial keywords from the claim
+      console.log("extracting")
       let keyWordsResponse = await adapter.chat(extractPrompt);
       let keyWords = cleanKeywords(keyWordsResponse);
       global_keywords = [[...keyWords]]; // Initialize global_keywords with the initial list
-  
+      console.log("keywords extracted:", keyWords)
       // Fetch the report using the current keywords
       const report = await retryWithKeywordsAsync(
         [factCheckExplorer.process.bind(factCheckExplorer), rssReader.searchMultipleFeeds.bind(rssReader)]

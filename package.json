@@ -16,6 +16,7 @@
     "@langchain/community": "^0.3.7",
     "@langchain/core": "^0.3.13",
     "@langchain/ollama": "^0.1.0",
+    "@langchain/openai": "^0.3.11",
     "acorn": "^8.13.0",
     "acorn-import-attributes": "^1.9.5",
     "ajv": "^6.12.6",

@@ -31,7 +31,7 @@ class Adapter {
         openAIApiKey: this.openAIApiKey
       });
     } else if (this.llmText === 'ollama') {
-      if (!settings.ollamaModel || !settings.ollamaEndpoint) {
+      if (!this.settings.ollamaModel || !this.settings.ollamaEndpoint) {
         throw new Error('OLLAMA_MODEL and OLLAMA_URL must be defined in local storage');
       }
       this.prompt = ChatPromptTemplate.fromTemplate('answer the following request: {topic}');
@@ -46,13 +46,14 @@ class Adapter {
   }
 
   async chat(query) {
+    console.log('Entering adapter.chat() method')
     if (!this.llmChat) {
       await this.init(); // Ensure initialization
     }
     try {
-      // console.log(`Sending query to LLM: ${query}`);
+      console.log(`Sending query to LLM: ${query}`);
       const result = await this.llmChat.invoke(query);
-      // console.log(`Received response from LLM: ${JSON.stringify(result.content)}`);
+      console.log(`Received response from LLM: ${JSON.stringify(result.content)}`);
       return JSON.stringify(result.content);
     } catch (error) {
       console.error(`Error in adapter.chat(): ${error.message}`);
@@ -62,3 +63,7 @@ class Adapter {
 }
 
 export default Adapter;
+
+// //create example of usage of this class
+
+
