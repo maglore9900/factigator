@@ -37,7 +37,7 @@ class Adapter {
       this.prompt = ChatPromptTemplate.fromTemplate('answer the following request: {topic}');
       this.llmChat = new ChatOllama({
         baseUrl: this.ollamaEndpoint,
-        model: this.ollamaModel
+        model: this.ollamaModel,
       });
 
     } else {
