@@ -31,5 +31,6 @@ module.exports = {
     }
   },
   mode: 'production',
-  devtool: 'source-map'  // Add this line to generate source maps
+  devtool: 'source-map',
+  cache: false
 };

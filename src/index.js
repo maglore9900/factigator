@@ -142,7 +142,7 @@ async function retryWithKeywordsAsync(fns) {
 
   // Helper function to generate reduced sets of keywords
   async function generateReducedKeywords(currentKeywords) {
-    const reducePrompt = `The following keywords: '{keyWords}' are too broad. Remove the least relevant keyword. Return the keywords only.`;
+    const reducePrompt = `The following keywords: '{keyWords}' are too broad. Identify and remove the least relevant word based on importance and specificity to the original claim: ${claim}. Retain keywords that best capture the core information and context. Remove exactly one word and keep the remaining words intact. Only return the keywords as a comma delimited list!`;
     const newReducedKeywordsResponse = await adapter.chat(reducePrompt.replace('{keyWords}', currentKeywords.join(' ')));
     return cleanKeywords(newReducedKeywordsResponse);
   }
@@ -156,7 +156,7 @@ async function retryWithKeywordsAsync(fns) {
       while (true) {
         // Check if the number of iterations is less than the number of lists in global_keywords
         // console.log(`current keyword length: ${global_keywords[global_keywords.length - 1]} and length: ${global_keywords[global_keywords.length - 1].length} on i: ${iterationCount}, keyword lists count ${global_keywords.length}`);
-        if (iterationCount < global_keywords.length) {
+        if (iterationCount <= global_keywords.length) {
           const currentKeywords = global_keywords[global_keywords.length - 1];
           // Attempt the function with the current set of keywords
           const result = await fn(currentKeywords);
@@ -170,8 +170,9 @@ async function retryWithKeywordsAsync(fns) {
         // If iterations match global list length and the last list has more than one keyword, reduce keywords
           
         else if (global_keywords[global_keywords.length - 1].length > 1) {
-          const reducedKeywords = await generateReducedKeywords(global_keywords[global_keywords.length - 1]);
-          global_keywords.push(reducedKeywords);
+          const reducedKeywords =  await generateReducedKeywords(global_keywords[global_keywords.length - 1]);
+          const cleanReducedKeywords = cleanKeywords(reducedKeywords);
+          global_keywords.push(cleanReducedKeywords);
         } 
         // If only one keyword remains, exit loop without finding a result
         else {
@@ -194,7 +195,7 @@ function cleanKeywords(keyWords) {
   }
 
   // Clean the string by removing non-alphanumeric characters (excluding spaces)
-  const cleanedString = keyWords.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+  const cleanedString = keyWords.replace(/\n/g, ' ').replace(/[^a-zA-Z0-9\s]/g, '').trim();
   // Split by spaces and trim each resulting part
   return cleanedString.split(/\s+/).filter(word => word);
 }
