@@ -38,6 +38,7 @@ class Adapter {
       this.llmChat = new ChatOllama({
         baseUrl: this.ollamaEndpoint,
         model: this.ollamaModel,
+        num_ctx: 8192
       });
 
     } else {
