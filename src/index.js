@@ -38,7 +38,7 @@ function loadLLMSettings() {
 
 async function initializeSettings() {
   const settings = await loadLLMSettings(); // Wait for settings to load
-  console.log(`Settings loaded: ${JSON.stringify(settings)}`);
+  // console.log(`Settings loaded: ${JSON.stringify(settings)}`);
   // console.log(`factCheckExplorer: ${settings.factCheckExplorer}`);
   adapter = new Adapter(settings);
   factCheckExplorer = new FactCheckExplorer(settings); // Ensure settings are passed

@@ -38,7 +38,7 @@ class Adapter {
       this.llmChat = new ChatOllama({
         baseUrl: this.ollamaEndpoint,
         model: this.ollamaModel,
-        num_ctx: 8192
+        num_ctx: 8000,
       });
 
     } else {
@@ -66,5 +66,14 @@ class Adapter {
 export default Adapter;
 
 // //create example of usage of this class
+//lets set up some code to test the functions
 
+// const lsettings = {
+//   "ollamaEndpoint": "http://localhost:11434",
+//   "ollamaModel": "granite3-moe:3b-instruct-q8_0",
+//   "llmType": "ollama"
+// }
 
+// const ad = new Adapter(lsettings);
+
+//  ad.chat("What is 2+2?").then((result) => {console.log(result)})
