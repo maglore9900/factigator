@@ -43,7 +43,7 @@ async function initializeSettings() {
   adapter = new Adapter(settings);
   factCheckExplorer = new FactCheckExplorer(settings); // Ensure settings are passed
   rssReader = new RSSreader(settings);
-  console.log('Initialization complete.');
+  // console.log('Initialization complete.');
 }
 
 initializeSettings().catch(error => {
@@ -108,7 +108,7 @@ function injectSidebar(claim) {
       action: 'displaySummary',
       data: {
         claim: claim,
-        summary: '[Pending...]',
+        summary: '',
         status: 'Loading...',
         sources: []
       }
@@ -142,66 +142,153 @@ async function retryWithKeywordsAsync(fns) {
 
   // Helper function to generate reduced sets of keywords
   async function generateReducedKeywords(currentKeywords) {
-    const reducePrompt = `The following keywords: '{keyWords}' are too broad. Remove the least relevant keyword. Return the keywords only.`;
+// const reducePrompt = `The following keywords: '{keyWords}' are too broad. Identify and remove the least relevant word based on importance to the original claim: ${globalClaim}. 
+    
+// REMOVE ONE WORD. 
+    
+// Only return the keywords as a comma delimited list!`;
+
+  const reducePrompt = `
+  <description>Review the Keywords that are being used to search for information to support a Claim.</description>
+  <instruction>
+  In order to get a better search we need to remove one Keyword.<instruction/>
+  Remove the least important keyword.
+  YOU MUST REMOVE A WORD
+  REMOVE ONLY ONE KEYWORD. 
+  Only return the keywords as a comma delimited list
+  <keywords>'{keyWords}'</keywords>`
+    // console.log(reducePrompt.replace('{keyWords}', currentKeywords.join(' ')))
     const newReducedKeywordsResponse = await adapter.chat(reducePrompt.replace('{keyWords}', currentKeywords.join(' ')));
-    return cleanKeywords(newReducedKeywordsResponse);
+    console.log(`newReducedKeywordsResponse: ${newReducedKeywordsResponse}`)
+    return newReducedKeywordsResponse;
   }
 
   // Process each function independently
+  // await Promise.all(
+  //   fns.map(async (fn, index) => {
+  //     let iterationCount = 0;
+
+  //     // Loop until result is found or keywords are exhausted
+  //     while (true) {
+  //       // Check if the number of iterations is less than the number of lists in global_keywords
+  //       console.log(`current keyword length: ${global_keywords[global_keywords.length - 1]} and length: ${global_keywords[global_keywords.length - 1].length} on i: ${iterationCount}, keyword lists count ${global_keywords.length}`);
+  //       if (iterationCount <= global_keywords.length) {
+  //         const currentKeywords = global_keywords[global_keywords.length - 1];
+  //         // Attempt the function with the current set of keywords
+  //         const result = await fn(currentKeywords);
+
+  //         // If a result is found, store it and break out of the loop
+  //         if (result && result.length > 0) {
+  //           results[index] = result;
+  //           break;
+  //         }
+          
+  //       } 
+  //       // If iterations match global list length and the last list has more than one keyword, reduce keywords
+  //       else if (global_keywords[global_keywords.length - 1].length > 1) {
+  //         const reducedKeywords =  await generateReducedKeywords(global_keywords[global_keywords.length - 1]);
+  //         const cleanReducedKeywords = cleanKeywords(reducedKeywords);
+  //         console.log("trying push")
+  //         global_keywords.push(cleanReducedKeywords);
+  //         console.log(`global keyword list length ${global_keywords.length}`)
+  //       } 
+  //       // If only one keyword remains, exit loop without finding a result
+  //       else {
+  //         // console.log(`No results found for function ${index} with reduced keywords.`);
+  //         break;
+  //       }
+
+  //       // Increment iteration count
+  //       iterationCount++;
+  //     }
+  //   })
+  // );
   await Promise.all(
     fns.map(async (fn, index) => {
       let iterationCount = 0;
-
-      // Loop until result is found or keywords are exhausted
-      while (true) {
-        // Check if the number of iterations is less than the number of lists in global_keywords
-        console.log(`current keyword length: ${global_keywords[global_keywords.length - 1]} and length: ${global_keywords[global_keywords.length - 1].length} on i: ${iterationCount}, keyword lists count ${global_keywords.length}`);
-        if (iterationCount < global_keywords.length) {
-          const currentKeywords = global_keywords[global_keywords.length - 1];
-          // Attempt the function with the current set of keywords
-          const result = await fn(currentKeywords);
-
-          // If a result is found, store it and break out of the loop
-          if (result && result.length > 0) {
-            results[index] = result;
-            break;
-          }
-        } 
-        // If iterations match global list length and the last list has more than one keyword, reduce keywords
-          
-        else if (global_keywords[global_keywords.length - 1].length > 1) {
-          const reducedKeywords = await generateReducedKeywords(global_keywords[global_keywords.length - 1]);
-          global_keywords.push(reducedKeywords);
-        } 
-        // If only one keyword remains, exit loop without finding a result
-        else {
-          console.log(`No results found for function ${index} with reduced keywords.`);
+  
+      // Loop until a result is found or all keyword lists are exhausted
+      while (iterationCount < global_keywords.length) {
+        // Access the keyword list at the position of iterationCount
+        const currentKeywords = global_keywords[iterationCount];
+        
+        console.log(`Iteration: ${iterationCount}, keyword list length: ${currentKeywords.length}, keyword lists count: ${global_keywords.length}`);
+  
+        // Attempt the function with the current set of keywords
+        const result = await fn(currentKeywords);
+  
+        // If a result is found, store it and break out of the loop
+        if (result && result.length > 0) {
+          results[index] = result;
           break;
         }
-
-        // Increment iteration count
+  
+        // If no result found and we reach the last list, attempt to reduce the keywords
+        if (iterationCount === global_keywords.length - 1 && currentKeywords.length > 1) {
+          const reducedKeywords = await generateReducedKeywords(currentKeywords);
+          const cleanReducedKeywords = cleanKeywords(reducedKeywords);
+          global_keywords.push(cleanReducedKeywords);
+          console.log(`Global keyword list length: ${global_keywords.length}`);
+        } else if (iterationCount === global_keywords.length - 1) {
+          console.log(`No results found for function ${index} with current keywords.`);
+          break;
+        }
+  
+        // Increment iteration count to access the next list of keywords
         iterationCount++;
       }
     })
   );
+  
+
+
+
+
 
   return results;
 }
+
+// function cleanKeywords(keyWords) {
+//   if (typeof keyWords !== 'string') {
+//     throw new Error('Keywords must be a string');
+//   }
+
+//   // Clean the string by removing non-alphanumeric characters (excluding spaces)
+//   const cleanedString = keyWords.replace(/\n/g, ' ').replace(/[^a-zA-Z\s]/g, '').trim();
+//   // Split by spaces and trim each resulting part
+//   return cleanedString.split(/\s+/).filter(word => word);
+// }
 
 function cleanKeywords(keyWords) {
   if (typeof keyWords !== 'string') {
     throw new Error('Keywords must be a string');
   }
 
-  // Clean the string by removing non-alphanumeric characters (excluding spaces)
-  const cleanedString = keyWords.replace(/[^a-zA-Z0-9\s]/g, '').trim();
-  // Split by spaces and trim each resulting part
+  // Replace newlines with spaces, remove non-alphabetic characters (except spaces)
+  const cleanedString = keyWords.replace(/\n/g, ' ').replace(/[^a-zA-Z\s]/g, '').trim();
+  
+  // Split by spaces and filter out empty entries
   return cleanedString.split(/\s+/).filter(word => word);
 }
+
+// Example usage:
+const input = "1. Climate\n2. Change\n3. Environment\n4. Sustainability\n5. Global";
+console.log(cleanKeywords(input)); // Should output: ['Climate', 'Change', 'Environment', 'Sustainability', 'Global']
+
+
+
   
 async function performFactCheck(claim) {  
-    const extractPrompt = `Extract the keywords from the following text: ${claim}. These keywords will be used to search for information in a database. Only return up to 5 key words. Do not include any other text.`;
-    const validatePrompt = `Validate the following claim: ${claim} based on the following information: {report}.
+    const extractPrompt = `<description>Extract the keywords from the given claim</description>
+      <instruction>These keywords will be used to search for information in a database.
+      Do not add words.
+      Do not include any other text. 
+      Do not number the list. 
+      Limit the response to no more than 5 key words. 
+      Simply respond with the keywords in a comma delimited list
+      </instruction>
+      <claim>"${claim}"</claim>`;
+    const validatePrompt = `Validate the following claim: "${claim}" based on the following information: {report}.
   Answer the claim, if the claim is not a question, but keywords, then review the data and determine if the claim subject is true or false.
   When responding provide sources where possible so that the user can verify the information.
   Answer in the following format using Markdown:
@@ -213,10 +300,11 @@ async function performFactCheck(claim) {
   
     try {
       // Extract initial keywords from the claim
+      console.log("extracting")
       let keyWordsResponse = await adapter.chat(extractPrompt);
       let keyWords = cleanKeywords(keyWordsResponse);
       global_keywords = [[...keyWords]]; // Initialize global_keywords with the initial list
-  
+      console.log("keywords extracted:", keyWords)
       // Fetch the report using the current keywords
       const report = await retryWithKeywordsAsync(
         [factCheckExplorer.process.bind(factCheckExplorer), rssReader.searchMultipleFeeds.bind(rssReader)]

@@ -8,6 +8,7 @@ class Adapter {
   constructor(settings) {
     this.settings = settings;
     this.llmText = settings.llmType.toLowerCase();
+    console.log('LLM Type:', this.llmText)
     this.openAIApiKey = settings.openaiApiKey;
     this.openaiModel = settings.openaiModel;
     this.ollamaEndpoint = settings.ollamaEndpoint;
@@ -31,7 +32,7 @@ class Adapter {
         openAIApiKey: this.openAIApiKey
       });
     } else if (this.llmText === 'ollama') {
-      if (!settings.ollamaModel || !settings.ollamaEndpoint) {
+      if (!this.ollamaModel || !this.ollamaEndpoint) {
         throw new Error('OLLAMA_MODEL and OLLAMA_URL must be defined in local storage');
       }
       this.prompt = ChatPromptTemplate.fromTemplate('answer the following request: {topic}');
@@ -62,3 +63,23 @@ class Adapter {
 }
 
 export default Adapter;
+
+// (async () => {
+//   const settings = {
+//     llmType: 'ollama', // or 'ollama'
+//     openaiApiKey: 'your_openai_api_key',
+//     openaiModel: 'text-davinci-003',
+//     ollamaEndpoint: 'http://localhost:11434',
+//     ollamaModel: 'llama3.2:3b'
+//   };
+
+//   const adapter = new Adapter(settings);
+
+//   try {
+//     await adapter.init();
+//     const response = await adapter.chat('What is the weather today?');
+//     console.log('Chat response:', response);
+//   } catch (error) {
+//     console.error('An error occurred:', error);
+//   }
+// })();
