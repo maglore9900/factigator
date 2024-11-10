@@ -8,6 +8,7 @@ class Adapter {
   constructor(settings) {
     this.settings = settings;
     this.llmText = settings.llmType.toLowerCase();
+    console.log('LLM Type:', this.llmText)
     this.openAIApiKey = settings.openaiApiKey;
     this.openaiModel = settings.openaiModel;
     this.ollamaEndpoint = settings.ollamaEndpoint;
@@ -31,14 +32,13 @@ class Adapter {
         openAIApiKey: this.openAIApiKey
       });
     } else if (this.llmText === 'ollama') {
-      if (!this.settings.ollamaModel || !this.settings.ollamaEndpoint) {
+      if (!this.ollamaModel || !this.ollamaEndpoint) {
         throw new Error('OLLAMA_MODEL and OLLAMA_URL must be defined in local storage');
       }
       this.prompt = ChatPromptTemplate.fromTemplate('answer the following request: {topic}');
       this.llmChat = new ChatOllama({
         baseUrl: this.ollamaEndpoint,
-        model: this.ollamaModel,
-        num_ctx: 8000,
+        model: this.ollamaModel
       });
 
     } else {
@@ -47,7 +47,6 @@ class Adapter {
   }
 
   async chat(query) {
-    console.log('Entering adapter.chat() method')
     if (!this.llmChat) {
       await this.init(); // Ensure initialization
     }
@@ -65,15 +64,22 @@ class Adapter {
 
 export default Adapter;
 
-// //create example of usage of this class
-//lets set up some code to test the functions
+// (async () => {
+//   const settings = {
+//     llmType: 'ollama', // or 'ollama'
+//     openaiApiKey: 'your_openai_api_key',
+//     openaiModel: 'text-davinci-003',
+//     ollamaEndpoint: 'http://localhost:11434',
+//     ollamaModel: 'llama3.2:3b'
+//   };
 
-// const lsettings = {
-//   "ollamaEndpoint": "http://localhost:11434",
-//   "ollamaModel": "granite3-moe:3b-instruct-q8_0",
-//   "llmType": "ollama"
-// }
+//   const adapter = new Adapter(settings);
 
-// const ad = new Adapter(lsettings);
-
-//  ad.chat("What is 2+2?").then((result) => {console.log(result)})
+//   try {
+//     await adapter.init();
+//     const response = await adapter.chat('What is the weather today?');
+//     console.log('Chat response:', response);
+//   } catch (error) {
+//     console.error('An error occurred:', error);
+//   }
+// })();
