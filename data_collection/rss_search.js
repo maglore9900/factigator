@@ -69,7 +69,7 @@ class RSSreader {
       let rssText = null;
 
       if (this.getContent < this.rssUrls.length) {
-        rssText = await this.fetchRSSData(url);
+        rssText = await this.fetchFromBackground(url);
         this.getContent += 1
       }
       // const rssText = await this.fetchData(url);
@@ -189,8 +189,39 @@ class RSSreader {
     //   domains: Object.keys(this.results) // List of the domains
     // };
   }
-}
 
+
+  fetchFromBackground(url) {
+    console.log(`Fetching from background: ${url}`);
+    return new Promise((resolve, reject) => {
+      // Send message to the background script with the URL
+      chrome.runtime.sendMessage(
+        { action: "fetchFactCheckData", url: url },
+        response => {
+          if (chrome.runtime.lastError) {
+            console.error(`Runtime error: ${chrome.runtime.lastError.message}`);
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
+
+          if (response && response.success) {
+            // Return the raw JSON data
+            console.log('Response data:', response.data);
+            resolve(response.data);
+          } else if (!response) {
+            console.log('No response from background script');
+            resolve(null); // Resolve with null or another suitable value
+          } else {
+            const errorMessage = response.error || 'Unknown error occurred';
+            console.error(`Fetch failed: ${errorMessage}`);
+            reject(new Error(errorMessage));
+            return;
+          }
+        }
+      );
+    });
+  }
+}
 export default RSSreader;
 
 

@@ -29,37 +29,6 @@ class FactCheckExplorer {
     return query.replace(/\W+/g, '_');
   }
 
-// async fetchFactCheckData(query) {
-//     const baseUrl = 'https://toolbox.google.com/factcheck/api/search';
-//     const params = new URLSearchParams(this.params);
-//     params.append('query', query);
-  
-//     // Construct the encoded URL
-//     const encodedUrl = encodeURIComponent(`${baseUrl}?${params.toString()}`);
-  
-//     try {
-//       // Call the All Origins API
-//       // const response = await fetch(`https://api.allorigins.win/get?url=${encodedUrl}`);
-//       const response = await this.fetchFromBackground(`${encodedUrl}`);
-//       console.log('Received Data')
-//       // const data = await response.json();
-//       const data = response
-//       console.log('Raw API response:', data);
-  
-//       // Remove the prefix ")]}'" from the response contents
-//       const cleanedContent = data.contents.replace(/^\)\]\}\'\n/, '');
-  
-//       // Parse the cleaned JSON content
-//       const parsedData = JSON.parse(cleanedContent);
-//       console.log('Parsed API response:', parsedData);
-
-//       return parsedData;
-//     } catch (error) {
-//       console.error("Failed to parse JSON from response:", error);
-//       return null;
-//     }
-//   }
-
 async fetchFactCheckData(query) {
   const baseUrl = 'https://toolbox.google.com/factcheck/api/search';
   const params = new URLSearchParams(this.params);
@@ -93,34 +62,6 @@ async fetchFactCheckData(query) {
   }
 }
 
-
-  // fetchFromBackground(url) {
-  //   console.log(`Fetching from background: ${url}`);
-  //   return new Promise((resolve, reject) => {
-  //     // Send message to the background script with the URL
-  //     chrome.runtime.sendMessage(
-  //       { action: "fetchFactCheckData", url: url },
-  //       response => {
-  //         if (chrome.runtime.lastError) {
-  //           console.error(`Runtime error: ${chrome.runtime.lastError.message}`);
-  //           reject(new Error(chrome.runtime.lastError.message));
-  //           return;
-  //         }
-  
-  //         if (response && response.success) {
-  //           // Return the raw JSON data
-  //           console.log('Response data:', response.data);
-  //           resolve(response.data);
-
-  //         } else {
-  //           const errorMessage = response ? response.error : 'No response from background script';
-  //           console.error(`Fetch failed: ${errorMessage}`);
-  //           reject(new Error(errorMessage));
-  //         }
-  //       }
-  //     );
-  //   });
-  // }
   fetchFromBackground(url) {
     console.log(`Fetching from background: ${url}`);
     return new Promise((resolve, reject) => {
