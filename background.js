@@ -1,11 +1,15 @@
-
-
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "factCheck",
     title: "Fact Check",
-    contexts: ["selection"]
+    contexts: ["selection"],
   });
+});
+
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === "install") {
+    chrome.tabs.create({ url: "./welcome/welcome.html" });
+  }
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
@@ -14,11 +18,14 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     chrome.scripting.executeScript(
       {
         target: { tabId: tab.id },
-        files: ['dist/content.bundle.js']  // Use content.bundle.js instead of content.js
+        files: ["dist/content.bundle.js"], // Use content.bundle.js instead of content.js
       },
       () => {
         if (chrome.runtime.lastError) {
-          console.error("Script injection failed:", chrome.runtime.lastError.message);
+          console.error(
+            "Script injection failed:",
+            chrome.runtime.lastError.message
+          );
         } else {
           console.log("Script injected successfully.");
           sendMessageToContentScript(tab.id, info.selectionText);
@@ -32,15 +39,22 @@ function sendMessageToContentScript(tabId, selectedText) {
   chrome.storage.local.set({ query: selectedText });
 
   // Send message to the content script
-  chrome.tabs.sendMessage(tabId, { action: "factCheck", query: selectedText }, (response) => {
-    if (chrome.runtime.lastError) {
-      console.error("Message sending failed:", chrome.runtime.lastError.message);
-    } else {
-      console.log("Received response:", response);
+  chrome.tabs.sendMessage(
+    tabId,
+    { action: "factCheck", query: selectedText },
+    (response) => {
+      if (chrome.runtime.lastError) {
+        console.error(
+          "Message sending failed:",
+          chrome.runtime.lastError.message
+        );
+      } else {
+        console.log("Received response:", response);
+      }
     }
-  });
+  );
 }
-  
+
 // chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 //   if (request.action === "fetchFactCheckData") {
 //     (async () => {
@@ -62,21 +76,23 @@ function sendMessageToContentScript(tabId, selectedText) {
 //     return true; // Keeps the message channel open for asynchronous response
 //   }
 // });
-  
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "fetchFactCheckData") {
     (async () => {
       try {
         const response = await fetch(request.url, {
-          method: 'GET', // You can specify the method explicitly if needed
+          method: "GET", // You can specify the method explicitly if needed
           headers: {
-            'User-Agent': 'Mozilla/5.0', // Set your custom User-Agent here
-            'Accept':  'application/json, text/plain, */*', // Add other custom headers if necessary, e.g., 'Accept': 'application/json'
+            "User-Agent": "Mozilla/5.0", // Set your custom User-Agent here
+            Accept: "application/json, text/plain, */*", // Add other custom headers if necessary, e.g., 'Accept': 'application/json'
           },
         });
 
         if (!response.ok) {
-          throw new Error(`Network response was not ok: ${response.statusText}`);
+          throw new Error(
+            `Network response was not ok: ${response.statusText}`
+          );
         }
 
         // Parse the response as JSON or text (depending on what is expected)
@@ -90,7 +106,3 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // Keeps the message channel open for asynchronous response
   }
 });
-
-
-
-  
